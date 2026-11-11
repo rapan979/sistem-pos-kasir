@@ -6,7 +6,7 @@ Flowchart berikut menggambarkan alur proses
 transaksi pada sistem kasir usaha es teh,
 mulai dari kasir login sampai transaksi selesai.
 
-![Flowchart Transaksi](diagrams/flowchart.drawio.png)
+![Flowchart Transaksi](Diagrams/flowchart.drawio.png)
 
 Penjelasan Alur Transaksi:
 
@@ -26,7 +26,7 @@ Topologi sistem berikut menggambarkan hubungan
 antara pengguna, perangkat, aplikasi Laravel,
 database MySQL, dan komponen pendukung lainnya.
 
-![Topologi Sistem](diagrams/Topologi-sistem.drawio.png)
+![Topologi Sistem](Diagrams/Topologi-sistem.drawio.png)
 
 Penjelasan Hubungan Komponen Sistem:
 

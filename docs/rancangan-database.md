@@ -300,7 +300,7 @@ product_variation_id di tabel transaction_details merujuk ke id di tabel product
 ERD berikut menggambarkan hubungan antara
 tabel-tabel yang digunakan dalam sistem kasir.
 
-![ERD Database](diagrams/rancangan-database-final.drawio.png)
+![ERD Database](Diagrams/rancangan-database-final.drawio.png)
 
 
 6. Penjelasan Relasi Antar Tabel
