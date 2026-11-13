@@ -62,11 +62,7 @@ class AuthController extends Controller
             ]);
         }
 
-        // Pengalihan cerdas sesuai peran (Role)
-        if ($user->isOwner()) {
-            return redirect()->intended(route('dashboard'));
-        }
-
+        // Pengalihan langsung ke Layar Kasir POS
         return redirect()->intended(route('pos.index'));
     }
 

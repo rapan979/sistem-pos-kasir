@@ -2,9 +2,10 @@
 
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\LicenseController;
+use App\Http\Controllers\PosController;
 use Illuminate\Support\Facades\Route;
 
-// Redirect akar '/': Pengalihan cerdas sesuai status login & lisensi
+// Redirect akar '/': Langsung ke Layar Kasir POS jika sudah login & lisensi aktif
 Route::get('/', function () {
     if (! auth()->check()) {
         return redirect()->route('login');
@@ -15,7 +16,7 @@ Route::get('/', function () {
         return redirect()->route('license.locked');
     }
 
-    return redirect()->route($user->isOwner() ? 'dashboard' : 'pos.index');
+    return redirect()->route('pos.index');
 });
 
 // Rute Tamu (Guest)
@@ -46,11 +47,13 @@ Route::middleware('auth')->group(function () {
             })->name('dashboard');
         });
 
-        // Area Layar Kasir POS (Bisa diakses oleh Kasir maupun Owner)
+        // Area Layar Kasir POS (Pusat Operasional Utama Kasir & Owner)
         Route::middleware('role:owner,kasir')->group(function () {
-            Route::get('/pos', function () {
-                return view('pos.index');
-            })->name('pos.index');
+            Route::get('/pos', [PosController::class, 'index'])->name('pos.index');
+            Route::post('/pos/shift/open', [PosController::class, 'openShift'])->name('pos.shift.open');
+            Route::post('/pos/shift/close', [PosController::class, 'closeShift'])->name('pos.shift.close');
+            Route::post('/pos/checkout', [PosController::class, 'checkout'])->name('pos.checkout');
+            Route::post('/pos/transaction/{id}/void', [PosController::class, 'voidTransaction'])->name('pos.void');
         });
     });
 });
