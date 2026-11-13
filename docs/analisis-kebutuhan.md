@@ -1,99 +1,77 @@
-Berikut adalah dokumen Analisis Kebutuhan Sistem yang disusun dengan bahasa yang mudah dipahami, terstruktur, dan sangat cocok untuk Anda jadikan bahan diskusi atau laporan kepada pembimbing PKL di tempat magang.
+# Analisis Kebutuhan Sistem (Final)
+
+**Proyek:** Pengembangan Sistem Kasir (POS) Usaha Es Teh Berbasis Web PWA  
+**Konteks PKL:** PT Perkasa Solusindo (Prototype Produk POS Berlisensi untuk UMKM)  
+**Teknologi:** Website PWA (Laravel 13, Blade, Tailwind CSS v4, Vite, MySQL/MariaDB)  
+**Target Durasi:** ~6 Minggu (12 November – 23 Desember 2026)
 
 ---
-
-# Analisis Kebutuhan Sistem
-
-**Proyek:** Pengembangan Sistem Kasir (POS) untuk Usaha Es Teh
-**Teknologi:** Website (Laravel & MySQL)
 
 ### 1. Gambaran Umum Sistem
+Sistem ini adalah aplikasi **Point of Sale (POS)** atau kasir berbasis **Web PWA (Progressive Web App)** yang dibangun dengan *framework* Laravel dan *database* MySQL/MariaDB. Aplikasi dirancang khusus untuk operasional usaha minuman **Es Teh** milik UMKM, dengan sistem **lisensi berjangka waktu** yang menempel pada akun usaha agar siap dipasarkan/diserahkan kepada UMKM pelanggan PT Perkasa Solusindo.
 
-Sistem ini adalah sebuah aplikasi Point of Sale (POS) atau kasir berbasis website yang dibangun menggunakan *framework* Laravel dan *database* MySQL. Aplikasi ini dirancang khusus untuk mempermudah operasional usaha minuman kekinian (es teh), di mana kecepatan pelayanan sangat diutamakan. Sistem ini akan menggantikan proses pencatatan nota dan rekap manual dengan proses digital yang terpusat.
+Untuk kebutuhan simulasi dan demo proyek PKL, aplikasi diisi data contoh **1 usaha es teh simulasi (*Es Teh Nusantara*)** lengkap dengan 2 cabang, daftar menu, variasi ukuran, topping, bahan baku, resep, dan pelanggan contoh — di mana **seluruh data 100% dinamis dan dapat diubah bebas melalui web**.
 
 ### 2. Tujuan Sistem
+* Mempercepat pelayanan kasir saat menerima pesanan (target pembuatan 1–3 menit per cup).
+* Meminimalkan kesalahan hitung total belanja dan uang kembalian.
+* Membantu pemilik usaha (*Owner*) memantau omzet, performa tiap cabang, selisih uang kasir, dan pemakaian bahan baku secara akurat.
+* Menyediakan sistem POS **berlisensi** dengan aturan pembayaran yang ketat (belum bayar = belum aktif / belum diproses).
+* Dapat dikerjakan dan diuji tuntas di lingkungan lokal terlebih dahulu, lalu siap di-*deploy* ke server, domain HTTPS, database, payment gateway, dan sistem PT Perkasa Solusindo.
 
-Tujuan utama dari pembuatan sistem kasir ini adalah:
+### 3. Prinsip Desain & Pengalaman Pengguna (Muda sampai Sepuh)
+* **100% Bahasa Indonesia Sehari-hari:** Menghindari istilah teknis rumit di layar kasir.
+* **Touch-First & Ramah Pemula:** Tombol besar, huruf jelas, kontras tinggi, tombol nominal tunai cepat (*Uang Pas*, `Rp10.000`, `Rp20.000`, `Rp50.000`, `Rp100.000`).
+* **Mendukung Mode Solo (Usaha Mikro) maupun Mode Tim (Berkembang):**
+  * **Usaha Mikro (1 Orang):** Pemilik cukup memakai **1 akun `Owner` saja** tanpa wajib membuat akun `Kasir` atau mengisi resep bahan baku dulu. Begitu lisensi aktif, 1 gerai utama otomatis tersedia, dan pemilik dapat berpindah antara **Mode Kasir** dan **Mode Kelola & Laporan** dengan satu ketukan.
+  * **Usaha Berkembang:** Pemilik dapat menambah cabang (`outlets`) dan membuat akun `Kasir` khusus untuk pegawai.
 
-* Mempercepat proses pelayanan kasir saat menerima pesanan pelanggan.
-* Meminimalkan kesalahan perhitungan total belanja dan uang kembalian.
-* Mempermudah pemilik usaha (*owner*) dalam memantau pendapatan harian secara *real-time* tanpa harus datang ke gerai/booth.
-* Merapikan pencatatan data penjualan agar tidak ada riwayat transaksi yang hilang.
+### 4. Pengguna, Hak Akses (2 Role), & Sistem Lisensi
+Aplikasi tidak menggunakan `Super Admin` di dalam aplikasi kasir dan **tidak memiliki akun login untuk pembeli (`Customer`)**. Hanya ada **2 peran internal**:
 
-### 3. Permasalahan yang Ingin Diselesaikan
+* **`Owner` (Pemilik Usaha) — Akses Penuh:**
+  * Mengelola profil usaha, seluruh cabang (`outlets`), dan akun `Kasir`.
+  * Mengelola katalog menu (kategori, produk, variasi ukuran & harga, topping, foto, dan SKU/barcode).
+  * Mengelola gudang bahan baku, resep (BOM), stok masuk/penyesuaian, pelanggan, dan pesanan partai besar (B2B).
+  * Melihat seluruh laporan penjualan, shift kasir, dan mutasi bahan baku (per cabang maupun gabungan).
+  * Mengecek status & masa berlaku **lisensi**, serta melakukan pembayaran perpanjangan langganan atau aktivasi kode lisensi.
+  * Dapat langsung membuka **Mode Kasir** untuk ikut melayani penjualan.
 
-Jika usaha es teh masih menggunakan pencatatan manual (kertas dan kalkulator), masalah yang sering muncul antara lain:
+* **`Kasir` (Penjaga Booth) — Fokus Layar Jualan:**
+  * Akses terbatas hanya di cabang tempatnya bertugas.
+  * Membuka dan menutup shift kasir (input modal awal laci dan hitung uang fisik saat tutup).
+  * Melayani pesanan di layar POS, menghitung kembalian, menerima pembayaran, dan mencetak struk Bluetooth.
+  * Melihat riwayat transaksi pada shift-nya serta membatalkan transaksi (`void`) dengan alasan yang tercatat.
+  * **Diblokir dari:** pengaturan menu/harga, gudang bahan baku, pengelolaan akun, laporan owner, dan menu lisensi.
 
-* **Antrean Lambat:** Kasir butuh waktu lama untuk menghitung pesanan dengan banyak variasi (beda ukuran, beda topping).
-* **Kesalahan Hitung (Human Error):** Sering terjadi salah hitung uang kembalian, terutama saat jam sibuk.
-* **Rekapitulasi Sulit:** Saat tutup toko (*closing*), kasir atau pemilik harus menghitung ulang nota kertas satu per satu untuk mencocokkan uang di laci.
-* **Kecurangan:** Sulit melacak jika ada pesanan yang dijual tetapi uangnya tidak masuk ke laci kasir, karena tidak ada sistem keamanan.
+* **Pembeli (`Customer`):**
+  * Bukan pengguna login; data pembeli hanya dicatat secara opsional (nama di cup atau data pesanan B2B).
 
-### 4. Pengguna dan Hak Akses
+* **Sistem Lisensi & Masa Berlaku (Tanpa Trial):**
+  * Setiap akun usaha (`businesses`) terisolasi datanya per `business_id` dan memiliki status lisensi (`inactive`, `active`, `expired`, `suspended`) serta tanggal kadaluarsa (`license_expires_at`).
+  * **Tidak ada masa *free trial*:** Pendaftaran akun usaha baru berstatus `inactive` (terkunci) sampai paket langganan dibayar/diaktifkan sejak awal.
+  * Jika status bukan `active` atau tanggal berlaku sudah lewat, akses kasir & kelola usaha dikunci dan diarahkan ke halaman **"Aktivasi / Perpanjang Lisensi"** (via TriPay Sandbox atau kode aktivasi/integrasi PT).
 
-Sistem ini dirancang untuk digunakan oleh beberapa jenis peran (*role*), yaitu:
+### 5. Aturan Ketat Pembayaran & TriPay Sandbox
+* **Prinsip Wajib: Belum Bayar = Belum Aktif / Belum Diproses** (berlaku di lokal maupun setelah *deploy*):
+  * **Lisensi:** Belum dibayar → status usaha tetap `inactive`/`expired`, fitur terkunci. Baru menjadi `active` setelah status pembayaran terverifikasi **`PAID`**.
+  * **Transaksi Kasir (Semua Metode):**
+    * **Tunai:** Tidak dapat diselesaikan jika nominal bayar lebih kecil dari total belanja.
+    * **QRIS Dinamis (TriPay Sandbox / Gateway):** Checkout awal masuk sebagai `pending` (stok belum terpotong, struk lunas belum dicetak, belum masuk omzet). Baru menjadi `lunas` dan diproses setelah server TriPay mengonfirmasi status **`PAID`** (di lokal lewat tombol *"Cek Status Pembayaran"* ke API Sandbox; di server HTTPS juga otomatis melalui *callback/webhook*).
+    * **Transfer / QRIS Statis:** Ditahan di status `pending` sampai pembayaran dikonfirmasi masuk sesuai nominal total.
+* **Arsitektur Siap Integrasi Perusahaan:** Kredensial payment gateway (sementara memakai TriPay Sandbox pribadi di `.env`) dan kunci integrasi PT dipisahkan melalui service interface sehingga tinggal ganti `.env` saat dihubungkan ke sistem PT Perkasa Solusindo.
 
-* **Owner / Admin:**
-* Hak akses penuh ke seluruh fitur aplikasi.
-* Bisa menambah, mengubah, atau menghapus daftar menu dan harga.
-* Bisa melihat seluruh laporan penjualan dan riwayat transaksi.
-* Bisa membuat dan mengelola akun kasir.
+### 6. Daftar Fitur Lengkap (Target 6 Minggu)
+1. **Auth, Proteksi 2 Role, & Gerbang Lisensi:** Login/logout, pendaftaran akun usaha baru (tanpa trial), isolasi data per usaha, cek masa berlaku lisensi otomatis, serta halaman pembayaran/aktivasi lisensi (+ endpoint/command aktivasi untuk sistem PT).
+2. **PWA Mobile-First & Dukungan Perangkat (*Scalable*):** Install langsung dari browser HP tanpa APK (saat HTTPS), tampilan responsif untuk Tablet/Laptop, kotak scan **Barcode Scanner**, halaman **Customer Display (`/display`)** sinkron *real-time*, dan cetak nota thermal Bluetooth **`58mm`/`80mm`** (Web Bluetooth ESC/POS, bridge Android RawBT, & dialog cetak browser).
+3. **Multi-Cabang & Pegawai:** CRUD `outlets` dan akun `Kasir` per cabang.
+4. **Katalog Menu Lengkap:** CRUD kategori (`Fresh Tea`, `Milk Tea`, `Fruit Tea`, dll.), produk (+ foto & SKU/barcode, status `is_available`), variasi ukuran & harga (`Regular`, `Large`), dan **topping berbayar** (`Boba`, `Cincau`, `Cheese Cream`).
+5. **Halaman Kasir (POS) & Shift Kasir:** Buka/tutup shift kasir (mode cepat modal Rp 0 atau input laci), pilih menu + ukuran + topping + catatan gratis (*Less Sugar / Less Ice*), kalkulator tunai dengan tombol nominal cepat, pembayaran Tunai/Transfer/QRIS Statis/QRIS Dinamis TriPay, nomor nota unik (`INV-YYYYMMDD-001`), kunci harga historis (`price_at_transaction`), riwayat transaksi, dan pembatalan (`void`) tanpa hapus data.
+6. **Gudang Bahan Baku & Sistem Resep (BOM):** Master bahan (`Cup 16oz`, `Cup 22oz`, `Biang Teh`, `Gula`, dll.), stok per cabang, stok masuk/penyesuaian, peringatan stok menipis, resep per variasi produk & topping (otomatis terpotong saat transaksi `lunas` dan kembali saat `batal`, tercatat di riwayat mutasi stok). Menu tanpa resep tetap dapat dijual normal.
+7. **Pesanan Partai Besar (B2B):** Pencatatan order acara/catering, jadwal pengambilan, pembayaran uang muka (DP), dan pelunasan yang terhubung ke laporan omzet.
+8. **Dashboard & Laporan Lengkap (`Owner`):** Omzet harian/bulanan (per cabang & gabungan), total cup terjual, menu terlaris (*best seller*), rekap per metode pembayaran, laporan selisih shift kasir, dan laporan pemakaian bahan baku (siap cetak / ekspor CSV).
 
-
-* **Kasir (Cashier):**
-* Hak akses terbatas.
-* Hanya bisa mengakses halaman kasir (membuat pesanan) dan melihat riwayat transaksi pada *shift* atau hari tersebut.
-* Tidak bisa mengubah harga dasar atau menghapus data menu.
-
-
-* **Pelanggan (Customer):**
-* Bukan pengguna yang *login* ke dalam sistem, tetapi sebagai pihak yang berinteraksi dengan kasir dan menerima bukti transaksi (struk).
-
-
-
-### 5. Kebutuhan Fungsional
-
-Kebutuhan fungsional adalah apa saja yang **harus bisa dilakukan** oleh sistem:
-
-* Sistem dapat melakukan *login* dan *logout* sesuai *role* pengguna.
-* Sistem dapat menyimpan, mengedit, dan menghapus data kategori (misal: *Fresh Tea, Milk Tea*) dan data produk (nama menu, variasi ukuran, dan harga).
-* Sistem dapat memasukkan pesanan ke dalam keranjang belanja (*cart*).
-* Sistem dapat menghitung total belanja secara otomatis, termasuk tambahan biaya untuk *topping*.
-* Sistem dapat menghitung uang kembalian jika pembayaran menggunakan uang tunai.
-* Sistem dapat menampilkan laporan omzet harian.
-
-### 6. Kebutuhan Nonfungsional
-
-Ini adalah hal-hal yang mendukung kinerja sistem agar nyaman digunakan:
-
-* **Keamanan:** *Password* pengguna harus dienkripsi. Kasir tidak boleh bisa mengakses halaman laporan milik *owner*.
-* **Kemudahan Penggunaan (User Friendly):** Tampilan halaman kasir harus sederhana, menggunakan tombol besar, dan tidak butuh banyak "klik" agar kasir bisa melayani pesanan dengan cepat.
-* **Kecepatan (Performance):** Aplikasi website harus ringan dan cepat memuat data agar tidak menyebabkan antrean pembeli.
-
----
-
-### 7. Daftar Fitur Utama (MVP - Minimum Viable Product)
-
-Ini adalah fitur-fitur wajib yang akan Anda kerjakan pertama kali agar aplikasi bisa langsung dites dan dipakai untuk jualan:
-
-1. **Manajemen Pengguna (Auth):** Fitur *login/logout* dan pembagian hak akses (Admin & Kasir).
-2. **Kelola Katalog Menu:** Fitur CRUD (*Create, Read, Update, Delete*) untuk kategori, produk, variasi ukuran, dan harga *topping*.
-3. **Halaman Kasir (Point of Sale):** Halaman utama tempat kasir menekan gambar/nama produk, menambah ke keranjang, dan melakukan *checkout*.
-4. **Kalkulator Transaksi:** Perhitungan otomatis total bayar dan fitur *input* uang tunai untuk melihat kembalian. Menyediakan opsi pencatatan pembayaran QRIS/Transfer (secara manual).
-5. **Riwayat Transaksi:** Tabel yang berisi daftar nota yang sudah lunas.
-6. **Laporan Sederhana:** Halaman yang menampilkan total cup terjual dan total uang masuk hari ini.
-
-### 8. Fitur Pengembangan (Tahap Selanjutnya)
-
-Fitur-fitur ini sangat bagus, tetapi **tidak wajib dibuat di awal**. Fitur ini akan ditambahkan setelah fitur utama (MVP) selesai dan berjalan lancar:
-
-* **Integrasi Printer Thermal:** Mencetak struk secara otomatis langsung dari *browser*. *(Catatan: Perlu konfirmasi ke pembimbing apakah ada perangkat printer yang bisa dipinjam untuk testing).*
-* **Manajemen Stok Bahan Baku:** Menghitung sisa biang teh, gula, dan *cup* plastik secara otomatis setiap ada transaksi. *(Catatan: Perlu diskusi dengan pembimbing karena logika pemotongan stok minuman lebih rumit dibanding barang eceran).*
-* **QRIS Dinamis (Payment Gateway):** Memunculkan *barcode* QRIS otomatis dengan nominal yang pas (misal via Midtrans/Xendit) sehingga kasir tidak perlu cek mutasi manual.
-* **Barcode Scanner:** Pemindai *barcode* (biasanya jarang dipakai di usaha es teh, tapi bisa dikembangkan jika ada minuman kemasan botol jadi).
-* **Multi-outlet / Cabang:** Mengelola banyak *booth* es teh dalam satu aplikasi.
-* **Pelanggan B2B (Pesanan Partai Besar):** Fitur untuk mencatat pesanan *catering* atau acara dalam jumlah ratusan *cup* yang biasanya menggunakan DP (Down Payment) atau pelunasan di belakang.
-
-### 9. Kesimpulan
-
-Untuk proyek PKL ini, pengembangan sistem kasir usaha es teh berbasis Laravel sebaiknya berfokus pada **Fitur Utama (MVP)** terlebih dahulu. Membangun halaman kasir yang cepat, akurat dalam menghitung transaksi, dan mampu mencatat omzet harian adalah prioritas mutlak. Jika waktu PKL dan progres pengerjaan masih memungkinkan, barulah sistem ditingkatkan dengan menambahkan fitur-fitur kompleks seperti manajemen stok, integrasi QRIS otomatis, dan cetak *printer thermal*. Pendekatan bertahap ini akan memastikan proyek PKL Anda selesai tepat waktu dengan hasil yang berfungsi dengan baik (bebas *error*).
+### 7. Kebutuhan Nonfungsional
+* **Keamanan:** Password di-hash; validasi role, isolasi `business_id`, dan validasi lisensi dilakukan di server (middleware/policy); kunci rahasia hanya di `.env`.
+* **Keandalan Data:** Proses checkout, generate nomor nota, dan potong stok berjalan di dalam `DB::transaction()`.
+* **Portabilitas & Deploy-Ready:** Berjalan penuh di lokal untuk pengembangan/testing, dan siap dipindahkan ke hosting/server/cloud PT Perkasa Solusindo (`PHP >= 8.3`, MySQL/MariaDB, HTTPS).

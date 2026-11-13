@@ -17,6 +17,7 @@ class ProductVariation extends Model
     protected $fillable = [
         'product_id',
         'variation_name',
+        'barcode',
         'price',
     ];
 
@@ -30,9 +31,25 @@ class ProductVariation extends Model
         return $this->belongsTo(Product::class);
     }
 
+    /**
+     * Komposisi resep bahan baku (BOM) untuk ukuran ini.
+     */
+    public function recipes(): HasMany
+    {
+        return $this->hasMany(Recipe::class);
+    }
+
     // Relasi: variasi ini pernah dipakai di banyak detail transaksi.
     public function transactionDetails(): HasMany
     {
         return $this->hasMany(TransactionDetail::class);
+    }
+
+    /**
+     * Item pesanan B2B yang memilih variasi produk ini.
+     */
+    public function b2bOrderItems(): HasMany
+    {
+        return $this->hasMany(B2bOrderItem::class);
     }
 }

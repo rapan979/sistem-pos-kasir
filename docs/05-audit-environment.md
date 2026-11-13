@@ -230,3 +230,22 @@ Informasi siklus rilis, kompatibilitas, dan panduan deployment merujuk pada doku
 - **MariaDB About & Release Schedule:** https://mariadb.org/about/
 - **Node.js Previous Releases & EOL Schedule:** https://nodejs.org/en/about/previous-releases
 - **Composer Official Documentation:** https://getcomposer.org/doc/00-intro.md
+
+---
+
+## 5. Pembaruan Kondisi Aktual Environment (12 November 2026)
+
+Setelah tahap audit awal pada 10 November 2026, lingkungan pengembangan lokal telah disiapkan dan diverifikasi aktif:
+
+| Komponen | Kondisi Aktual (12 November 2026) | Lokasi / Catatan |
+| :--- | :--- | :--- |
+| **PHP** | **AKTIF** — `PHP 8.5.12 (cli)` | `C:\tools\php-8.5\php.exe` (terdaftar di PATH) |
+| **Composer** | **AKTIF** — `2.11.1` | `C:\ProgramData\ComposerSetup\bin` (terdaftar di PATH) |
+| **Framework** | **AKTIF** — **Laravel 13** (`^13.0`) | Ter-install di folder `app/` |
+| **Frontend Tooling** | **AKTIF** — Tailwind CSS `^4.0.0`, Vite `^7.0.7` | `app/package.json` & `app/node_modules/` |
+| **Database** | **AKTIF** — MySQL / MariaDB di `127.0.0.1:3306` | Database `kasir_es_teh` terhubung (`php artisan migrate:status` sukses) |
+| **Git** | **AKTIF** — Branch `main` | Sudah diinisialisasi di root proyek |
+
+**Catatan Kesiapan Deployment ke PT Perkasa Solusindo:**
+* Seluruh pengembangan dan uji awal dilakukan di laptop lokal terlebih dahulu.
+* Saat dipindahkan ke server/hosting perusahaan pada tahap akhir, pastikan server target menyediakan **PHP `>= 8.3`**, **MySQL/MariaDB**, serta **SSL/HTTPS aktif** (dibutuhkan untuk instalasi PWA di HP, Web Bluetooth, dan *callback* TriPay).

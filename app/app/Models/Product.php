@@ -13,8 +13,10 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class Product extends Model
 {
     protected $fillable = [
+        'business_id',
         'category_id',
         'name',
+        'sku_barcode',
         'image',
         'is_available',
     ];
@@ -24,6 +26,14 @@ class Product extends Model
     protected $casts = [
         'is_available' => 'boolean',
     ];
+
+    /**
+     * Usaha pemilik produk ini.
+     */
+    public function business(): BelongsTo
+    {
+        return $this->belongsTo(Business::class);
+    }
 
     // Relasi: produk ini milik satu kategori.
     public function category(): BelongsTo
