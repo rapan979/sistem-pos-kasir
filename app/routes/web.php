@@ -5,15 +5,10 @@ use App\Http\Controllers\LicenseController;
 use App\Http\Controllers\PosController;
 use Illuminate\Support\Facades\Route;
 
-// Redirect akar '/': Langsung ke Layar Kasir POS jika sudah login & lisensi aktif
+// Redirect akar '/': Langsung ke Layar Kasir POS jika sudah login
 Route::get('/', function () {
     if (! auth()->check()) {
         return redirect()->route('login');
-    }
-
-    $user = auth()->user();
-    if (! $user->business?->hasActiveLicense()) {
-        return redirect()->route('license.locked');
     }
 
     return redirect()->route('pos.index');
@@ -38,22 +33,19 @@ Route::middleware('auth')->group(function () {
         Route::post('/activate', [LicenseController::class, 'activateWithKey'])->name('activate');
     });
 
-    // Rute Operasional (WAJIB MEMILIKI LISENSI AKTIF)
-    Route::middleware('license.active')->group(function () {
-        // Area Khusus Owner (Dashboard Pengelola)
-        Route::middleware('role:owner')->group(function () {
-            Route::get('/dashboard', function () {
-                return view('dashboard');
-            })->name('dashboard');
-        });
+    // Area Layar Kasir POS (Pusat Operasional Utama Kasir & Owner)
+    Route::middleware('role:owner,kasir')->group(function () {
+        Route::get('/pos', [PosController::class, 'index'])->name('pos.index');
+        Route::post('/pos/shift/open', [PosController::class, 'openShift'])->name('pos.shift.open');
+        Route::post('/pos/shift/close', [PosController::class, 'closeShift'])->name('pos.shift.close');
+        Route::post('/pos/checkout', [PosController::class, 'checkout'])->name('pos.checkout');
+        Route::post('/pos/transaction/{id}/void', [PosController::class, 'voidTransaction'])->name('pos.void');
+    });
 
-        // Area Layar Kasir POS (Pusat Operasional Utama Kasir & Owner)
-        Route::middleware('role:owner,kasir')->group(function () {
-            Route::get('/pos', [PosController::class, 'index'])->name('pos.index');
-            Route::post('/pos/shift/open', [PosController::class, 'openShift'])->name('pos.shift.open');
-            Route::post('/pos/shift/close', [PosController::class, 'closeShift'])->name('pos.shift.close');
-            Route::post('/pos/checkout', [PosController::class, 'checkout'])->name('pos.checkout');
-            Route::post('/pos/transaction/{id}/void', [PosController::class, 'voidTransaction'])->name('pos.void');
-        });
+    // Area Khusus Owner (Dashboard Pengelola)
+    Route::middleware('role:owner')->group(function () {
+        Route::get('/dashboard', function () {
+            return view('dashboard');
+        })->name('dashboard');
     });
 });
