@@ -30,7 +30,20 @@ class ProductSeeder extends Seeder
             'Fruit Tea' => [
                 'Es Teh Apel' => [7000, 9000, 'ETN-FR-001'],
                 'Es Teh Stroberi' => [8000, 10000, 'ETN-FR-002'],
+                'Es Teh Leci' => [7000, 9000, 'ETN-FR-003'],
             ],
+        ];
+
+        $imageMap = [
+            'Es Teh Original' => 'images/products/es-teh-original.jpg',
+            'Es Teh Melati' => 'images/products/es-teh-melati.jpg',
+            'Es Teh Lemon' => 'images/products/es-teh-lemon.jpg',
+            'Milk Tea Original' => 'images/products/milktea-original.jpg',
+            'Thai Tea' => 'images/products/thai-tea.jpg',
+            'Es Teh Susu Gula Aren' => 'images/products/es-teh-susu-gula-aren.jpg',
+            'Es Teh Apel' => 'images/products/es-teh-apel.jpg',
+            'Es Teh Stroberi' => 'images/products/es-teh-stroberi.jpg',
+            'Es Teh Leci' => 'images/products/es-teh-leci.jpg',
         ];
 
         foreach ($data as $categoryName => $products) {
@@ -39,7 +52,7 @@ class ProductSeeder extends Seeder
                 ->firstOrFail();
 
             foreach ($products as $productName => [$regularPrice, $largePrice, $skuBarcode]) {
-                // Kaitkan produk lama (jika ada dari seeder awal) ke usaha Es Teh Nusantara.
+                // Kaitkan produk lama (jika ada dari seeder awal) ke usaha Es Teh Perkasa.
                 Product::whereNull('business_id')
                     ->where('category_id', $category->id)
                     ->where('name', $productName)
@@ -53,7 +66,7 @@ class ProductSeeder extends Seeder
                     ],
                     [
                         'sku_barcode' => $skuBarcode,
-                        'image' => null,
+                        'image' => $imageMap[$productName] ?? null,
                         'is_available' => true,
                     ]
                 );

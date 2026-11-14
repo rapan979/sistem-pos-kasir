@@ -17,7 +17,7 @@ class BusinessSeeder extends Seeder
         $activeBusiness = Business::updateOrCreate(
             ['license_key' => 'ETN-2026-AKTIF'],
             [
-                'name' => 'Es Teh Nusantara',
+                'name' => 'Es Teh Perkasa',
                 'owner_name' => 'Owner Es Teh',
                 'phone' => '081111222333',
                 'address' => 'Jl. Merdeka No. 10, Jakarta',
@@ -30,17 +30,17 @@ class BusinessSeeder extends Seeder
 
         $activeOutlets = [
             [
-                'name' => 'Gerai Pusat',
+                'name' => 'Gerai Utama',
                 'address' => 'Jl. Merdeka No. 10, Jakarta',
                 'phone' => '081111222333',
-                'receipt_footer' => 'Terima kasih sudah jajan di Es Teh Nusantara!',
+                'receipt_footer' => 'Terima kasih sudah jajan di Es Teh Perkasa!',
                 'is_active' => true,
             ],
             [
                 'name' => 'Gerai Cabang 2',
                 'address' => 'Jl. Sudirman No. 25, Jakarta',
                 'phone' => '081111222444',
-                'receipt_footer' => 'Es Teh Nusantara Cabang 2 — Segar Setiap Hari',
+                'receipt_footer' => 'Es Teh Perkasa Cabang 2 — Segar Setiap Hari',
                 'is_active' => true,
             ],
         ];
