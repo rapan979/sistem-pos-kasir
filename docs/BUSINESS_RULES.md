@@ -26,14 +26,27 @@ Dokumen ini mendefinisikan aturan mutlak logika bisnis yang tidak boleh dilangga
 ---
 
 ## 3. Aturan Menu, Variasi, & Topping
-1. **Variasi Ukuran Produk:**
-   * Setiap produk minuman wajib memiliki minimal 1 variasi ukuran (contoh: *Regular*).
+1. **Kategori & Menu Resmi Es Teh Perkasa:**
+   * **Kategori 1: Teh Klasik (Basic)**
+     * *Es Teh Original* — Reguler: Rp 4.000 | Large: Rp 6.000
+     * *Es Teh Melati* — Reguler: Rp 5.000 | Large: Rp 7.000
+   * **Kategori 2: Teh Buah (Fruit Tea)**
+     * *Es Teh Lemon* — Reguler: Rp 7.000 | Large: Rp 9.000
+     * *Es Teh Stroberi* — Reguler: Rp 8.000 | Large: Rp 10.000
+     * *Es Teh Apel* — Reguler: Rp 8.000 | Large: Rp 10.000
+     * *Es Teh Leci* — Reguler: Rp 9.000 | Large: Rp 12.000
+   * **Kategori 3: Premium & Susu (Milk Based)**
+     * *Milk Tea Original* — Reguler: Rp 10.000 | Large: Rp 13.000
+     * *Thai Tea* — Reguler: Rp 10.000 | Large: Rp 13.000
+     * *Es Teh Susu Gula Aren* — Reguler: Rp 12.000 | Large: Rp 15.000
+2. **Variasi Ukuran Produk:**
+   * Setiap produk minuman memiliki variasi ukuran (*Regular* dan *Large*).
    * Harga jual produk melekat pada variasi ukuran produk, bukan pada kepala produk.
-2. **Topping Berbayar (Opsional):**
-   * Pelanggan dapat memilih 0 atau lebih topping berbayar (contoh: *Boba +Rp3.000, Cincau +Rp2.000, Cheese Cream +Rp4.000*).
-   * Harga topping dikalikan kuantitas produk yang dipesan.
-3. **Kustomisasi Gratis:**
-   * Pilihan takaran gula (*Normal, Less Sugar, No Sugar, Extra*) dan level es (*Normal Ice, Less Ice, No Ice, Warm*) dicatat sebagai catatan pesanan tanpa menambah biaya.
+3. **Topping Berbayar (Roadmap Phase 2):**
+   * Skema database dan model topping (`Topping.php`, `toppings` table) tetap dipertahankan utuh di backend untuk pengembangan lanjutan.
+   * Pada operasional fase ini, opsi topping disembunyikan sementara dari layar kasir agar fokus transaksi cepat pada minuman inti.
+4. **Kustomisasi Gratis:**
+   * Pilihan takaran gula (*Normal, Less Sugar, No Sugar*) dan level es (*Normal, Less Ice, No Ice*) dicatat sebagai catatan pesanan tanpa menambah biaya.
 
 ---
 
@@ -45,7 +58,7 @@ Dokumen ini mendefinisikan aturan mutlak logika bisnis yang tidak boleh dilangga
    * Kembalian dihitung otomatis secara realtime di layar kasir:  
      $$\text{change\_amount} = \text{paid\_amount} - \text{total\_amount}$$
 3. **Tombol Pecahan Cepat:**
-   * Antarmuka wajib menyediakan tombol nominal cepat: *Uang Pas*, *Rp 10.000*, *Rp 20.000*, *Rp 50.000*, *Rp 100.000* untuk mempercepat input uang.
+   * Antarmuka menyediakan tombol nominal cepat uang kertas: *Rp 10.000*, *Rp 20.000*, *Rp 50.000*, *Rp 100.000* (tanpa tombol uang pas) serta Keypad Layar Sentuh (*Touch NumPad*) 1-9, 0, 000, ⌫ untuk fleksibilitas kasir.
 
 ---
 

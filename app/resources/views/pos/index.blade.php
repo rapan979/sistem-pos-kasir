@@ -318,12 +318,8 @@
             <!-- Kotak Perhitungan Uang Tunai + Keypad Sentuh (Touch NumPad) -->
             <div id="cash-calculator-box" class="space-y-2.5">
                 
-                <!-- Pilihan Nominal Cepat -->
+                <!-- Pilihan Nominal Cepat Pecahan Uang Kertas -->
                 <div class="grid grid-cols-4 gap-1.5">
-                    <button type="button" onclick="setCashExact()"
-                        class="py-1.5 rounded-lg bg-white border border-[#EBE6DD] hover:border-stone-300 text-[11px] font-bold text-[#1B4332] transition active:scale-95 cursor-pointer">
-                        Uang Pas
-                    </button>
                     <button type="button" onclick="setCashAmount(10000)"
                         class="py-1.5 rounded-lg bg-white border border-[#EBE6DD] hover:border-stone-300 text-[11px] font-mono font-bold text-[#2D2D2D] transition active:scale-95 cursor-pointer">
                         10k
@@ -335,6 +331,10 @@
                     <button type="button" onclick="setCashAmount(50000)"
                         class="py-1.5 rounded-lg bg-white border border-[#EBE6DD] hover:border-stone-300 text-[11px] font-mono font-bold text-[#2D2D2D] transition active:scale-95 cursor-pointer">
                         50k
+                    </button>
+                    <button type="button" onclick="setCashAmount(100000)"
+                        class="py-1.5 rounded-lg bg-white border border-[#EBE6DD] hover:border-stone-300 text-[11px] font-mono font-bold text-[#2D2D2D] transition active:scale-95 cursor-pointer">
+                        100k
                     </button>
                 </div>
 
@@ -402,21 +402,6 @@
             <div class="space-y-1.5">
                 <label class="block text-[11px] font-bold text-stone-600 uppercase">Pilih Ukuran Cup</label>
                 <div class="grid grid-cols-2 gap-2" id="modal-variations-container"></div>
-            </div>
-
-            <!-- Pilihan Topping -->
-            <div class="space-y-1.5">
-                <label class="block text-[11px] font-bold text-stone-600 uppercase">Topping Tambahan</label>
-                <div class="grid grid-cols-2 gap-2">
-                    @foreach ($toppings as $top)
-                        <label class="p-2.5 rounded-xl border border-[#EBE6DD] bg-[#F8F6F0]/40 flex items-center gap-2 cursor-pointer text-xs">
-                            <input type="checkbox" name="modal_toppings" value="{{ $top->id }}" data-price="{{ $top->price }}" data-name="{{ $top->name }}"
-                                onchange="recalculateModalPrice()"
-                                class="w-3.5 h-3.5 text-[#1B4332] rounded border-[#EBE6DD] focus:ring-[#1B4332]">
-                            <span class="font-medium text-[#2D2D2D] truncate">{{ $top->name }} (+{{ number_format($top->price/1000, 0) }}k)</span>
-                        </label>
-                    @endforeach
-                </div>
             </div>
 
             <!-- Opsi Gula & Es -->

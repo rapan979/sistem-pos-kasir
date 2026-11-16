@@ -3,7 +3,7 @@
 ---
 
 ## 1. Ringkasan Produk & Visi
-* **Nama Produk:** Sistem POS Kasir Es Teh Nusantara
+* **Nama Produk:** Sistem POS Kasir Es Teh Perkasa
 * **Konteks:** Proyek PKL di **PT Perkasa Solusindo**
 * **Visi:** Menyediakan aplikasi kasir berbasis web PWA yang sangat cepat, mudah digunakan oleh kasir muda hingga sepuh, bebas dari kesalahan kalkulator kembalian, dan siap mencetak nota thermal 58mm untuk gerai UMKM minuman es teh.
 
@@ -22,11 +22,11 @@
 ### A. Fitur Utama yang Dikerjakan (*IN-SCOPE - MVP*)
 1. **Layar Kasir (POS-First):**
    * Pengguna login langsung masuk ke Layar Kasir (`/pos`).
-   * Tab filter kategori menu (*Semua, Fresh Tea, Milk Tea, Fruit Tea*) dan pencarian cepat.
-   * Modal pemilihan ukuran cup (*Regular / Large*), topping berbayar (*Boba, Cincau, Cheese Cream*), serta takaran gula dan level es.
+   * Tab filter kategori menu (*Semua, Teh Klasik, Teh Buah, Premium & Susu*) dan pencarian cepat.
+   * Modal pemilihan ukuran cup (*Reguler / Large*), serta takaran gula dan level es.
    * Keranjang belanja dinamis dengan tombol tambah/kurang kuantitas instan $+/-$, hapus per item, dan kosongkan keranjang.
 2. **Kalkulator Pembayaran Cepat:**
-   * **Tunai:** Tombol nominal cepat (*Uang Pas*, Rp 10.000, Rp 20.000, Rp 50.000, Rp 100.000) dan perhitungan kembalian otomatis.
+   * **Tunai:** Tombol pecahan uang cepat (Rp 10.000, Rp 20.000, Rp 50.000, Rp 100.000), Keypad Layar Sentuh (*Touch NumPad*), dan perhitungan kembalian otomatis.
    * **QRIS Simulasi:** Menampilkan kode QR simulasi lokal + tombol konfirmasi status lunas sebelum nota dicetak.
 3. **Buka & Tutup Shift Kasir:**
    * Modal awal laci kasir dicatat saat buka shift.
@@ -39,7 +39,8 @@
 6. **Progressive Web App (PWA):**
    * File `manifest.json` dan Service Worker untuk caching asset dan instalasi aplikasi mandiri di HP Android / Windows Desktop.
 
-### B. Fitur yang Disimpan untuk Fase Nanti (*OUT-OF-SCOPE*)
+### B. Fitur yang Disimpan untuk Fase Nanti (*OUT-OF-SCOPE / ROADMAP PHASE 2*)
+* ⏳ **Topping Tambahan Berbayar (Phase 2):** Skema tabel `toppings` dan model backend telah siap, disembunyikan sementara dari layar kasir fase 1 agar fokus pada varian minuman.
 * ❌ Pemesanan mandiri oleh pembeli via website (*Customer Web Order*).
 * ❌ Sistem multi-cabang, distribusi stok antar gerai, dan franchise monitoring.
 * ❌ Sistem lisensi komersial berbayar / voucher langganan.
