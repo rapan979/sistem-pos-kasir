@@ -35,7 +35,7 @@
                 Rasa Otentik &bull; Pelayanan Cepat
             </span>
             <h1 class="text-2xl lg:text-3xl font-extrabold text-white tracking-tight leading-snug max-w-sm">
-                Sistem Kasir Cerdas Gerai Minuman
+                Sistem POS (Point of Sale) Kasir Es Teh Perkasa
             </h1>
             <p class="text-xs text-emerald-100/80 mt-2 max-w-xs leading-relaxed">
                 Operasional cepat, hitungan kembalian akurat, dan cetak struk instan untuk gerai Es Teh Perkasa.
@@ -95,7 +95,7 @@
                     <!-- Input Email Kasir -->
                     <div>
                         <label for="email" class="block text-[11px] font-bold text-stone-700 uppercase tracking-wider mb-1.5">
-                            Alamat Email Kasir
+                            Username
                         </label>
                         <div class="relative">
                             <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-stone-400">
@@ -164,7 +164,7 @@
                 <div class="pt-3 border-t border-[#EBE6DD]">
                     <button type="button" onclick="fillKasir()"
                         class="w-full py-2.5 px-3 rounded-xl border border-[#EBE6DD] bg-[#F8F6F0] hover:bg-stone-100 text-[#2D2D2D] text-xs font-semibold flex items-center justify-center gap-2 transition active:scale-95 cursor-pointer">
-                        <span class="text-[#E88A1A]">⚡</span>
+                        <span class="text-[#E88A1A]"></span>
                         <span>Isi Cepat Akun Kasir Uji</span>
                         <span class="text-[10px] text-stone-500 font-mono">(kasir@esteh.test)</span>
                     </button>
