@@ -1,18 +1,21 @@
 <!DOCTYPE html>
-<html lang="id" class="h-full bg-[#faf9f6]">
+<html lang="id" class="h-full bg-[#F8F6F0]">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Layar Kasir - Es Teh Perkasa</title>
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <meta name="theme-color" content="#0e2a1d">
+    <meta name="theme-color" content="#1B4332">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <link rel="manifest" href="/manifest.json">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 
     <style>
-        /* Gaya Cetak Nota Thermal 58mm Bersih */
+        /* Gaya Cetak Nota Thermal 58mm Bersih & Terisolasi */
         @media print {
             body * {
                 visibility: hidden !important;
@@ -40,774 +43,757 @@
         }
     </style>
 </head>
-<body class="h-full flex flex-col font-sans antialiased text-stone-900 select-none bg-[#faf9f6]">
+<body class="h-full flex flex-col md:flex-row font-sans antialiased text-[#2D2D2D] select-none bg-[#F8F6F0]">
 
-    <!-- TOPBAR KASIR MINIMALIS & ELEGAN -->
-    <header class="bg-white border-b border-stone-200 px-4 py-2.5 flex items-center justify-between shrink-0 z-30 shadow-xs">
-        <!-- Logo & Identitas Gerai -->
-        <div class="flex items-center gap-3">
-            <img src="/images/logo.jpg" alt="Logo Es Teh Perkasa" class="w-9 h-9 rounded-xl object-contain border border-stone-200 bg-[#0e2a1d] shadow-xs">
-            <div>
-                <div class="flex items-center gap-2">
-                    <h1 class="font-extrabold text-sm sm:text-base text-stone-900 tracking-tight leading-tight">Es Teh Perkasa</h1>
-                    <span class="px-2 py-0.5 bg-stone-100 text-stone-600 text-[10px] font-bold rounded-md uppercase tracking-wider">
-                        Mesin Kasir
-                    </span>
+    <!-- ==============================================================
+         1. SIDEBAR KIRI: NAVIGASI & PROFIL KASIR (DESKTOP/TABLET)
+         ============================================================== -->
+    <aside class="w-full md:w-56 lg:w-60 bg-white border-b md:border-b-0 md:border-r border-[#EBE6DD] shrink-0 flex flex-col justify-between z-20">
+        
+        <!-- Bagian Atas: Logo Brand & Menu Navigasi -->
+        <div class="p-4 space-y-5">
+            <!-- Brand Logo -->
+            <div class="flex items-center gap-3">
+                <img src="/images/logo.jpg" alt="Logo Es Teh Perkasa" class="w-10 h-10 rounded-2xl object-contain border border-[#EBE6DD] bg-[#F8F6F0] p-1 shadow-2xs">
+                <div>
+                    <h1 class="font-extrabold text-sm text-[#1B4332] tracking-tight leading-tight">Es Teh Perkasa</h1>
+                    <p class="text-[10px] text-stone-500 font-medium">Sistem Kasir Operasional</p>
                 </div>
-                <p class="text-xs text-stone-500 flex items-center gap-2 mt-0.5">
-                    <span>{{ $outlet->name ?? 'Gerai Utama' }}</span>
-                    <span>&bull;</span>
-                    <span id="current-clock" class="font-mono text-stone-600 font-medium">--:--:-- WIB</span>
-                </p>
-            </div>
-        </div>
-
-        <!-- Aksi Kasir & Shift -->
-        <div class="flex items-center gap-2 sm:gap-3">
-            <!-- Tombol Riwayat Nota Shift Ini -->
-            <button type="button" onclick="openHistoryModal()"
-                class="h-9 px-3 bg-stone-100 hover:bg-stone-200 text-stone-700 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition active:scale-95 cursor-pointer border border-stone-200">
-                <svg class="w-3.5 h-3.5 text-stone-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-                </svg>
-                <span class="hidden sm:inline">Riwayat Nota</span>
-            </button>
-
-            <!-- Indikator Shift Kasir -->
-            <div id="shift-status-pill" class="flex items-center">
-                @if ($activeShift)
-                    <button type="button" onclick="openCloseShiftModal()"
-                        class="h-9 px-3 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 text-emerald-900 rounded-xl flex items-center gap-2 transition active:scale-95 cursor-pointer text-xs">
-                        <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                        <div class="text-left hidden sm:block">
-                            <span class="text-[10px] text-emerald-700 block leading-none">Shift Aktif</span>
-                            <span class="font-bold text-xs leading-tight">Rp {{ number_format($activeShift->opening_cash, 0, ',', '.') }}</span>
-                        </div>
-                        <span class="text-[11px] font-semibold text-emerald-800 underline sm:ml-1">Tutup Kasir</span>
-                    </button>
-                @else
-                    <button type="button" onclick="openStartShiftModal()"
-                        class="h-9 px-3 bg-amber-500 hover:bg-amber-600 text-stone-950 font-bold text-xs rounded-xl flex items-center gap-1.5 transition active:scale-95 shadow-xs cursor-pointer">
-                        <span>⚠️</span> Buka Kasir
-                    </button>
-                @endif
             </div>
 
-            <!-- Petugas Kasir -->
-            <div class="hidden lg:flex items-center gap-2 bg-stone-50 px-2.5 py-1.5 rounded-xl border border-stone-200 text-xs">
-                <svg class="w-3.5 h-3.5 text-stone-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                </svg>
-                <span class="font-bold text-stone-800">{{ $user->name }}</span>
-            </div>
-
-            <!-- Tombol Logout -->
-            <form action="{{ route('logout') }}" method="POST" class="inline">
-                @csrf
-                <button type="submit" title="Keluar Kasir"
-                    class="h-9 w-9 sm:w-auto sm:px-3 bg-stone-100 hover:bg-rose-50 text-stone-500 hover:text-rose-700 rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 transition active:scale-95 border border-stone-200 cursor-pointer">
-                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+            <!-- Navigasi Menu POS -->
+            <nav class="space-y-1">
+                <a href="{{ route('pos.index') }}" 
+                    class="w-full px-3.5 py-2.5 rounded-xl bg-[#1B4332]/10 text-[#1B4332] font-bold text-xs flex items-center gap-3 transition">
+                    <svg class="w-4 h-4 text-[#1B4332]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
                     </svg>
-                    <span class="hidden sm:inline">Keluar</span>
+                    <span>Menu POS</span>
+                </a>
+
+                <!-- Tombol Riwayat Nota -->
+                <button type="button" onclick="openHistoryModal()"
+                    class="w-full px-3.5 py-2.5 rounded-xl text-[#2D2D2D] hover:bg-[#F8F6F0] font-semibold text-xs flex items-center gap-3 transition active:scale-95 cursor-pointer">
+                    <svg class="w-4 h-4 text-stone-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <span>Riwayat Nota</span>
                 </button>
-            </form>
+
+                <!-- Status Shift Kasir -->
+                <div class="pt-2">
+                    @if ($activeShift)
+                        <button type="button" onclick="openCloseShiftModal()"
+                            class="w-full p-2.5 rounded-xl bg-emerald-50 hover:bg-emerald-100/80 border border-emerald-200/80 text-left transition active:scale-95 cursor-pointer">
+                            <div class="flex items-center justify-between">
+                                <span class="flex items-center gap-1.5 text-[10px] font-bold text-emerald-800 uppercase tracking-wider">
+                                    <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                                    Shift Aktif
+                                </span>
+                                <span class="text-[10px] text-emerald-700 underline font-semibold">Tutup</span>
+                            </div>
+                            <div class="text-xs font-mono font-bold text-emerald-900 mt-1">
+                                Modal: Rp {{ number_format($activeShift->opening_cash, 0, ',', '.') }}
+                            </div>
+                        </button>
+                    @else
+                        <button type="button" onclick="openStartShiftModal()"
+                            class="w-full p-2.5 rounded-xl bg-[#E88A1A]/10 hover:bg-[#E88A1A]/20 border border-[#E88A1A]/30 text-left transition active:scale-95 cursor-pointer">
+                            <div class="flex items-center gap-1.5 text-[10px] font-bold text-[#E88A1A] uppercase tracking-wider">
+                                <span>⚠️</span>
+                                Kasir Belum Buka
+                            </div>
+                            <div class="text-xs font-bold text-[#1B4332] mt-0.5 underline">
+                                Klik untuk Buka Shift
+                            </div>
+                        </button>
+                    @endif
+                </div>
+            </nav>
         </div>
-    </header>
 
-    <!-- AREA UTAMA KASIR (2 KOLOM: KATALOG & KERANJANG) -->
-    <main class="flex-1 flex flex-col lg:flex-row overflow-hidden relative">
+        <!-- Bagian Bawah Sidebar: Profil Kasir & Jam -->
+        <div class="p-4 border-t border-[#EBE6DD] bg-[#F8F6F0]/40 space-y-3">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-2.5 min-w-0">
+                    <div class="w-8 h-8 rounded-full bg-[#1B4332] text-white flex items-center justify-center font-bold text-xs shrink-0">
+                        {{ strtoupper(substr($user->name, 0, 1)) }}
+                    </div>
+                    <div class="truncate">
+                        <span class="block text-xs font-bold text-[#2D2D2D] truncate">{{ $user->name }}</span>
+                        <span class="block text-[10px] text-stone-500">{{ $outlet->name ?? 'Gerai Utama' }}</span>
+                    </div>
+                </div>
 
-        <!-- ==============================================
-             KOLOM KIRI: KATALOG MENU BERGAMBAR (60%)
-             ============================================== -->
-        <section class="flex-1 flex flex-col bg-[#faf9f6] overflow-hidden border-b lg:border-b-0 lg:border-r border-stone-200">
-            <!-- Filter Kategori & Pencarian Menu -->
-            <div class="p-3 sm:p-4 bg-white border-b border-stone-200 shrink-0 space-y-3">
-                <!-- Bar Pencarian Cepat -->
-                <div class="relative">
-                    <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-stone-400">
+                <!-- Tombol Logout -->
+                <form action="{{ route('logout') }}" method="POST" class="shrink-0">
+                    @csrf
+                    <button type="submit" title="Keluar Kasir"
+                        class="w-8 h-8 rounded-xl bg-white hover:bg-rose-50 text-stone-400 hover:text-rose-600 border border-[#EBE6DD] flex items-center justify-center transition active:scale-95 cursor-pointer">
                         <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
                         </svg>
-                    </span>
-                    <input type="text" id="menu-search" placeholder="Cari es teh, susu, leci..."
-                        class="w-full pl-10 pr-8 py-2.5 bg-stone-50 border border-stone-200 rounded-xl text-sm placeholder-stone-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#0e2a1d] focus:border-[#0e2a1d] transition">
-                    <button type="button" id="clear-search" onclick="clearSearch()" class="hidden absolute inset-y-0 right-0 pr-3 flex items-center text-stone-400 hover:text-stone-700">
-                        ✕
                     </button>
-                </div>
-
-                <!-- Tab Kategori Menu Minimalis -->
-                <div class="flex items-center gap-2 overflow-x-auto pb-0.5 scrollbar-none" id="category-pills">
-                    <button type="button" onclick="filterCategory('all')" data-cat="all"
-                        class="cat-pill active px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition cursor-pointer bg-[#0e2a1d] text-white shadow-xs">
-                        Semua Menu
-                    </button>
-                    @foreach ($categories as $cat)
-                        <button type="button" onclick="filterCategory('{{ $cat->id }}')" data-cat="{{ $cat->id }}"
-                            class="cat-pill px-4 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition cursor-pointer bg-stone-100 text-stone-600 hover:bg-stone-200 hover:text-stone-900">
-                            {{ $cat->name }} ({{ $cat->products->count() }})
-                        </button>
-                    @endforeach
-                </div>
+                </form>
             </div>
 
-            <!-- Grid Kartu Menu Minuman Bergambar Asli -->
-            <div class="flex-1 overflow-y-auto p-3 sm:p-4">
-                <div class="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-3 2xl:grid-cols-4 gap-3 sm:gap-4" id="products-grid">
-                    @forelse ($categories as $category)
-                        @foreach ($category->products as $product)
-                            @php
-                                $minPrice = $product->variations->min('price') ?? 0;
-                                $maxPrice = $product->variations->max('price') ?? 0;
-                                $priceLabel = ($minPrice === $maxPrice) 
-                                    ? 'Rp ' . number_format($minPrice, 0, ',', '.')
-                                    : 'Rp ' . number_format($minPrice, 0, ',', '.') . ' - ' . number_format($maxPrice, 0, ',', '.');
-                                $imgSrc = $product->image ? asset($product->image) : asset('images/products/es-teh-original.jpg');
-                            @endphp
-                            <div class="product-card group bg-white rounded-2xl border border-stone-200 hover:border-stone-400 hover:shadow-md transition-all duration-200 p-3 flex flex-col justify-between active:scale-[0.98] cursor-pointer"
-                                data-id="{{ $product->id }}"
-                                data-name="{{ $product->name }}"
-                                data-cat="{{ $category->id }}"
-                                data-image="{{ $imgSrc }}"
-                                data-variations='@json($product->variations)'
-                                onclick="openProductModal({{ $product->id }})">
-                                
-                                <div>
-                                    <!-- Foto Produk Berkualitas -->
-                                    <div class="w-full h-32 sm:h-36 rounded-xl bg-stone-50 border border-stone-100 flex items-center justify-center overflow-hidden mb-2.5 relative">
-                                        <img src="{{ $imgSrc }}" alt="{{ $product->name }}" 
-                                            class="w-full h-full object-contain group-hover:scale-105 transition-transform duration-300">
-                                        <span class="absolute top-2 left-2 px-2 py-0.5 rounded-md bg-white/90 backdrop-blur-xs text-[10px] font-bold text-stone-600 shadow-xs">
-                                            {{ $category->name }}
-                                        </span>
-                                    </div>
-
-                                    <!-- Nama Produk -->
-                                    <h2 class="font-bold text-stone-900 text-sm leading-snug line-clamp-2">
-                                        {{ $product->name }}
-                                    </h2>
-                                </div>
-
-                                <div class="mt-3 pt-2 border-t border-stone-100 flex items-center justify-between">
-                                    <span class="text-xs font-black text-stone-900 font-mono">
-                                        {{ $priceLabel }}
-                                    </span>
-                                    <span class="w-7 h-7 rounded-lg bg-[#0e2a1d] text-white flex items-center justify-center text-xs font-bold group-hover:bg-[#1a4a34] transition shadow-xs">
-                                        +
-                                    </span>
-                                </div>
-                            </div>
-                        @endforeach
-                    @empty
-                        <div class="col-span-full py-16 text-center text-stone-400">
-                            <p class="text-4xl mb-2">🍵</p>
-                            <p class="font-bold text-sm text-stone-600">Belum ada menu di sistem kasir ini.</p>
-                        </div>
-                    @endforelse
-                </div>
-
-                <div id="no-search-results" class="hidden py-16 text-center text-stone-400">
-                    <p class="text-4xl mb-2">🔍</p>
-                    <p class="font-bold text-sm text-stone-600">Menu es teh tidak ditemukan.</p>
-                    <p class="text-xs text-stone-400 mt-1">Coba kata kunci lain seperti original, leci, susu, atau lemon.</p>
-                </div>
+            <!-- Jam Realtime -->
+            <div class="text-center">
+                <span id="current-clock" class="font-mono text-[11px] font-semibold text-stone-500">
+                    --:--:-- WIB
+                </span>
             </div>
-        </section>
+        </div>
+    </aside>
 
-        <!-- ==============================================
-             KOLOM KANAN: KERANJANG & CHECKOUT DENGAN NUMPAD (40%)
-             ============================================== -->
-        <section class="w-full lg:w-[420px] xl:w-[450px] flex flex-col bg-white shrink-0 border-l border-stone-200 z-20">
-            <!-- Header Keranjang -->
-            <div class="px-4 py-3 border-b border-stone-200 flex items-center justify-between bg-stone-50/60">
-                <div class="flex items-center gap-2">
-                    <span class="text-sm font-extrabold text-stone-900">Pesanan Kasir</span>
-                    <span id="cart-item-count" class="px-2 py-0.5 bg-stone-200 text-stone-700 text-xs font-bold rounded-full">
-                        0 item
-                    </span>
-                </div>
-                <button type="button" onclick="clearCart()"
-                    class="text-xs text-stone-400 hover:text-rose-600 transition flex items-center gap-1 font-medium cursor-pointer">
-                    <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+    <!-- ==============================================================
+         2. AREA TENGAH: KATALOG MENU (DATA RIIL DATABASE)
+         ============================================================== -->
+    <main class="flex-1 flex flex-col overflow-hidden bg-[#F8F6F0] relative">
+        
+        <!-- Header Atas Tengah: Search Bar & Kategori -->
+        <div class="p-4 sm:p-5 pb-2 shrink-0 space-y-3">
+            <!-- Pencarian Cepat Menu -->
+            <div class="relative max-w-md">
+                <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-stone-400">
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                     </svg>
-                    Kosongkan
-                </button>
-            </div>
-
-            <!-- Daftar Item di Keranjang (Scrollable) -->
-            <div id="cart-items-container" class="flex-1 overflow-y-auto p-3 sm:p-4 space-y-2.5">
-                <!-- State Kosong Default -->
-                <div id="empty-cart-state" class="h-full min-h-[180px] flex flex-col items-center justify-center text-center text-stone-400 py-10">
-                    <div class="w-14 h-14 rounded-2xl bg-stone-100 flex items-center justify-center text-2xl mb-2 text-stone-400">
-                        🛒
-                    </div>
-                    <p class="font-bold text-stone-700 text-sm">Pesanan Belum Ada</p>
-                    <p class="text-xs text-stone-400 max-w-[220px] mt-0.5">
-                        Pilih menu es teh pada katalog di sebelah kiri.
-                    </p>
-                </div>
-
-                <!-- Kontainer Item Terisi JS -->
-                <div id="cart-items-list" class="space-y-2 hidden"></div>
-            </div>
-
-            <!-- Panel Pembayaran Terstruktur (Inspirasi Kedai Senja) -->
-            <div class="border-t border-stone-200 bg-stone-50/80 p-4 space-y-3.5 shrink-0">
-                <!-- Total Tagihan Besar -->
-                <div class="flex justify-between items-baseline pt-1">
-                    <span class="text-xs font-bold text-stone-500 uppercase tracking-wider">Total Tagihan</span>
-                    <span id="cart-total-display" class="text-3xl font-black text-stone-900 font-mono tracking-tight">
-                        Rp 0
-                    </span>
-                </div>
-
-                <!-- Tab Metode Bayar: [ Tunai ] vs [ Non-tunai (QRIS) ] -->
-                <div class="grid grid-cols-2 gap-2 p-1 bg-stone-200/60 rounded-xl">
-                    <button type="button" onclick="selectPaymentMethod('cash')" id="btn-pay-cash"
-                        class="py-2.5 px-3 rounded-lg text-xs font-bold flex items-center justify-center gap-2 transition cursor-pointer bg-white text-stone-900 shadow-xs">
-                        <span>💵</span> Tunai
-                    </button>
-                    <button type="button" onclick="selectPaymentMethod('qris')" id="btn-pay-qris"
-                        class="py-2.5 px-3 rounded-lg text-xs font-semibold flex items-center justify-center gap-2 transition cursor-pointer text-stone-600 hover:text-stone-900">
-                        <span>📱</span> Non-tunai (QRIS)
-                    </button>
-                </div>
-
-                <!-- ==============================================
-                     KOTAK BAYAR TUNAI + KEYPAD NUMPAD SENTUH BESAR
-                     ============================================== -->
-                <div id="cash-calculator-box" class="space-y-2.5">
-                    <!-- Tombol Cepat Pecahan Uang -->
-                    <div class="grid grid-cols-4 gap-1.5">
-                        <button type="button" onclick="setCashExact()"
-                            class="py-2 bg-white hover:bg-stone-100 border border-stone-300 rounded-lg text-[11px] font-bold text-stone-800 transition active:scale-95 shadow-2xs">
-                            Uang Pas
-                        </button>
-                        <button type="button" onclick="setCashAmount(50000)"
-                            class="py-2 bg-white hover:bg-stone-100 border border-stone-300 rounded-lg text-[11px] font-bold text-stone-800 transition active:scale-95 shadow-2xs">
-                            50.000
-                        </button>
-                        <button type="button" onclick="setCashAmount(100000)"
-                            class="py-2 bg-white hover:bg-stone-100 border border-stone-300 rounded-lg text-[11px] font-bold text-stone-800 transition active:scale-95 shadow-2xs">
-                            100.000
-                        </button>
-                        <button type="button" onclick="setCashAmount(200000)"
-                            class="py-2 bg-white hover:bg-stone-100 border border-stone-300 rounded-lg text-[11px] font-bold text-stone-800 transition active:scale-95 shadow-2xs">
-                            200.000
-                        </button>
-                    </div>
-
-                    <!-- Input Nominal Diterima & Kembalian -->
-                    <div class="grid grid-cols-2 gap-2">
-                        <div>
-                            <label class="text-[10px] font-bold text-stone-500 uppercase tracking-wider block mb-1">Uang Diterima</label>
-                            <input type="number" id="cash-received-input" placeholder="0" min="0" step="500"
-                                oninput="calculateChange()"
-                                class="w-full px-3 py-2 bg-white border border-stone-300 rounded-xl text-base font-mono font-bold text-stone-900 focus:outline-none focus:ring-2 focus:ring-[#0e2a1d]">
-                        </div>
-                        <div>
-                            <label class="text-[10px] font-bold text-stone-500 uppercase tracking-wider block mb-1">Kembalian</label>
-                            <div id="change-display-box" class="px-3 py-2 bg-stone-100 border border-stone-200 rounded-xl text-base font-mono font-bold text-stone-600 flex items-center justify-between">
-                                <span id="change-amount-display">Rp 0</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- KEYPAD NUMERIK TOUCHSCREEN (Mempermudah Kasir di HP / Tablet) -->
-                    <div class="pt-1">
-                        <div class="grid grid-cols-3 gap-1.5 p-2 bg-white border border-stone-200 rounded-2xl shadow-2xs text-sm font-mono font-bold">
-                            <button type="button" onclick="numpadInput('1')" class="h-11 bg-stone-50 hover:bg-stone-100 active:scale-95 rounded-xl text-stone-800 flex items-center justify-center transition border border-stone-100">1</button>
-                            <button type="button" onclick="numpadInput('2')" class="h-11 bg-stone-50 hover:bg-stone-100 active:scale-95 rounded-xl text-stone-800 flex items-center justify-center transition border border-stone-100">2</button>
-                            <button type="button" onclick="numpadInput('3')" class="h-11 bg-stone-50 hover:bg-stone-100 active:scale-95 rounded-xl text-stone-800 flex items-center justify-center transition border border-stone-100">3</button>
-                            <button type="button" onclick="numpadInput('4')" class="h-11 bg-stone-50 hover:bg-stone-100 active:scale-95 rounded-xl text-stone-800 flex items-center justify-center transition border border-stone-100">4</button>
-                            <button type="button" onclick="numpadInput('5')" class="h-11 bg-stone-50 hover:bg-stone-100 active:scale-95 rounded-xl text-stone-800 flex items-center justify-center transition border border-stone-100">5</button>
-                            <button type="button" onclick="numpadInput('6')" class="h-11 bg-stone-50 hover:bg-stone-100 active:scale-95 rounded-xl text-stone-800 flex items-center justify-center transition border border-stone-100">6</button>
-                            <button type="button" onclick="numpadInput('7')" class="h-11 bg-stone-50 hover:bg-stone-100 active:scale-95 rounded-xl text-stone-800 flex items-center justify-center transition border border-stone-100">7</button>
-                            <button type="button" onclick="numpadInput('8')" class="h-11 bg-stone-50 hover:bg-stone-100 active:scale-95 rounded-xl text-stone-800 flex items-center justify-center transition border border-stone-100">8</button>
-                            <button type="button" onclick="numpadInput('9')" class="h-11 bg-stone-50 hover:bg-stone-100 active:scale-95 rounded-xl text-stone-800 flex items-center justify-center transition border border-stone-100">9</button>
-                            <button type="button" onclick="numpadInput('000')" class="h-11 bg-amber-50 hover:bg-amber-100 text-amber-900 active:scale-95 rounded-xl flex items-center justify-center transition border border-amber-200">000</button>
-                            <button type="button" onclick="numpadInput('0')" class="h-11 bg-stone-50 hover:bg-stone-100 active:scale-95 rounded-xl text-stone-800 flex items-center justify-center transition border border-stone-100">0</button>
-                            <button type="button" onclick="numpadBackspace()" class="h-11 bg-rose-50 hover:bg-rose-100 text-rose-700 active:scale-95 rounded-xl flex items-center justify-center transition border border-rose-200 text-xs">⌫ Hapus</button>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Kotak Info Khusus QRIS -->
-                <div id="qris-info-box" class="hidden p-3 bg-amber-50/70 border border-amber-200 rounded-xl space-y-1">
-                    <span class="text-xs font-bold text-amber-900 flex items-center gap-1.5">
-                        <span>📱</span> Pembayaran Non-tunai (QRIS)
-                    </span>
-                    <p class="text-[11px] text-amber-800 leading-relaxed">
-                        Setelah menekan tombol di bawah, kode QR simulasi lokal akan muncul untuk divalidasi pembayarannya.
-                    </p>
-                </div>
-
-                <!-- Tombol Eksekusi Checkout Utama -->
-                <button type="button" id="btn-checkout" onclick="initiateCheckout()" disabled
-                    class="w-full min-h-[48px] py-3.5 px-4 bg-[#0e2a1d] hover:bg-[#153b2a] disabled:bg-stone-300 disabled:text-stone-400 disabled:cursor-not-allowed text-white font-bold rounded-xl text-sm shadow-sm transition active:scale-[0.99] flex items-center justify-center gap-2 cursor-pointer">
-                    <span id="btn-checkout-text">✓ Konfirmasi Lunas</span>
-                </button>
-            </div>
-        </section>
-    </main>
-
-    <!-- ==============================================
-         MODAL 1: PILIH VARIASI UKURAN, TOPPING & GULA
-         ============================================== -->
-    <div id="product-modal" class="hidden fixed inset-0 z-50 bg-stone-900/60 backdrop-blur-xs flex items-center justify-center p-4">
-        <div class="bg-white rounded-3xl max-w-md w-full overflow-hidden shadow-2xl border border-stone-200 animate-in fade-in zoom-in-95 duration-150 flex flex-col max-h-[90vh]">
-            <!-- Header Modal dengan Foto Produk -->
-            <div class="p-4 border-b border-stone-100 flex items-center justify-between bg-stone-50/70">
-                <div class="flex items-center gap-3">
-                    <img id="modal-product-img" src="/images/products/es-teh-original.jpg" alt="Produk" class="w-12 h-12 rounded-xl object-contain bg-white border border-stone-200 p-1">
-                    <div>
-                        <h3 id="modal-product-name" class="font-bold text-base text-stone-900 leading-tight">Nama Menu</h3>
-                        <p class="text-xs text-stone-500">Pilih ukuran cup & topping ekstra</p>
-                    </div>
-                </div>
-                <button type="button" onclick="closeProductModal()" class="w-8 h-8 rounded-full bg-stone-200 hover:bg-stone-300 text-stone-600 flex items-center justify-center text-sm font-bold cursor-pointer">
+                </span>
+                <input type="text" id="menu-search" placeholder="Cari Menu..."
+                    class="w-full pl-10 pr-8 py-2.5 bg-white border border-[#EBE6DD] rounded-xl text-xs sm:text-sm text-[#2D2D2D] placeholder-stone-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#1B4332] focus:border-[#1B4332] shadow-[0_2px_8px_rgba(27,67,50,0.03)] transition">
+                <button type="button" id="clear-search" onclick="clearSearch()" class="hidden absolute inset-y-0 right-0 pr-3 flex items-center text-stone-400 hover:text-stone-700">
                     ✕
                 </button>
             </div>
 
-            <!-- Body Modal (Pilihan Variasi) -->
-            <div class="p-4 overflow-y-auto space-y-4 text-xs">
-                <!-- 1. Pilihan Ukuran Cup -->
-                <div>
-                    <label class="font-extrabold text-stone-800 text-xs block mb-2 uppercase tracking-wider">1. Ukuran Cup (Wajib)</label>
-                    <div id="modal-variations-list" class="grid grid-cols-2 gap-2"></div>
-                </div>
+            <!-- Filter Kategori Pil (Pill Buttons) Berdasarkan Database Riil -->
+            <div class="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none" id="category-pills">
+                <button type="button" onclick="filterCategory('all')" data-cat="all"
+                    class="cat-pill active px-4 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition cursor-pointer bg-[#1B4332] text-white shadow-xs">
+                    Semua
+                </button>
+                @foreach ($categories as $cat)
+                    <button type="button" onclick="filterCategory('{{ $cat->id }}')" data-cat="{{ $cat->id }}"
+                        class="cat-pill px-4 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition cursor-pointer bg-white text-[#2D2D2D] border border-[#EBE6DD] hover:bg-stone-50">
+                        {{ $cat->name }}
+                    </button>
+                @endforeach
+            </div>
+        </div>
 
-                <!-- 2. Pilihan Topping Berbayar -->
-                <div>
-                    <label class="font-extrabold text-stone-800 text-xs block mb-2 uppercase tracking-wider">2. Topping Ekstra (Opsional)</label>
-                    <div class="space-y-1.5" id="modal-toppings-list">
-                        @foreach ($toppings as $top)
-                            <label class="flex items-center justify-between p-3 rounded-xl border border-stone-200 hover:bg-stone-50 cursor-pointer transition">
-                                <div class="flex items-center gap-2.5">
-                                    <input type="checkbox" name="modal_toppings" value="{{ $top->id }}" data-price="{{ $top->price }}" data-name="{{ $top->name }}"
-                                        onchange="recalculateModalPrice()"
-                                        class="w-4 h-4 rounded border-stone-300 text-[#0e2a1d] focus:ring-[#0e2a1d]">
-                                    <span class="font-semibold text-stone-800 text-xs">{{ $top->name }}</span>
+        <!-- Grid Kartu Menu Minuman (Pure White Cards with Soft Shadow) -->
+        <div class="flex-1 overflow-y-auto p-4 sm:p-5 pt-2">
+            <div class="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 2xl:grid-cols-4 gap-3.5 sm:gap-4" id="products-grid">
+                @forelse ($categories as $category)
+                    @foreach ($category->products as $product)
+                        @php
+                            $minPrice = $product->variations->min('price') ?? 0;
+                            $maxPrice = $product->variations->max('price') ?? 0;
+                            $priceLabel = ($minPrice === $maxPrice) 
+                                ? 'Rp ' . number_format($minPrice, 0, ',', '.')
+                                : 'Rp ' . number_format($minPrice, 0, ',', '.') . ' - ' . number_format($maxPrice, 0, ',', '.');
+                            $imgSrc = $product->image ? asset($product->image) : asset('images/products/es-teh-original.jpg');
+                            
+                            // Badge Terlaris untuk menu unggulan tertentu
+                            $isPopular = in_array(strtolower($product->name), ['es teh original', 'es teh leci', 'thai tea', 'es teh susu gula aren']);
+                        @endphp
+                        <div class="product-card group bg-white rounded-2xl border border-[#EBE6DD] hover:border-stone-300 p-3.5 flex flex-col justify-between shadow-[0_4px_16px_rgba(27,67,50,0.04)] hover:shadow-[0_8px_24px_rgba(27,67,50,0.08)] transition-all duration-200 active:scale-[0.98] cursor-pointer relative"
+                            data-id="{{ $product->id }}"
+                            data-name="{{ $product->name }}"
+                            data-cat="{{ $category->id }}"
+                            data-image="{{ $imgSrc }}"
+                            data-variations='@json($product->variations)'
+                            onclick="openProductModal({{ $product->id }})">
+                            
+                            <!-- Badge Terlaris (Oranye Amber #E88A1A) -->
+                            @if ($isPopular)
+                                <span class="absolute top-5 left-5 z-10 px-2 py-0.5 rounded-full bg-[#E88A1A] text-white text-[9px] font-extrabold uppercase tracking-wider shadow-2xs">
+                                    Terlaris
+                                </span>
+                            @endif
+
+                            <div>
+                                <!-- Foto Produk Asli (Aspect Ratio Rapi) -->
+                                <div class="w-full h-32 sm:h-36 rounded-xl bg-[#F8F6F0] flex items-center justify-center overflow-hidden mb-3 relative">
+                                    <img src="{{ $imgSrc }}" alt="{{ $product->name }}" 
+                                        class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
                                 </div>
-                                <span class="font-bold text-stone-900 font-mono">+Rp {{ number_format($top->price, 0, ',', '.') }}</span>
-                            </label>
-                        @endforeach
-                    </div>
-                </div>
 
-                <!-- 3. Takaran Gula & Level Es -->
-                <div class="grid grid-cols-2 gap-2.5 pt-2 border-t border-stone-100">
-                    <div>
-                        <label class="font-bold text-stone-700 text-[11px] block mb-1">Takaran Gula</label>
-                        <select id="modal-sugar-level" class="w-full px-2.5 py-2 border border-stone-300 rounded-xl bg-white text-xs">
-                            <option value="Normal">Normal (100%)</option>
-                            <option value="Less Sugar">Sedikit Gula (50%)</option>
-                            <option value="No Sugar">Tanpa Gula (0%)</option>
-                            <option value="Extra Sugar">Lebih Manis</option>
-                        </select>
+                                <!-- Judul Nama Minuman -->
+                                <h3 class="font-bold text-[#2D2D2D] text-xs sm:text-sm leading-snug line-clamp-1">
+                                    {{ $product->name }}
+                                </h3>
+                            </div>
+
+                            <!-- Baris Harga & Tombol Bulat Tambah (+) -->
+                            <div class="mt-2.5 pt-2 border-t border-[#EBE6DD]/60 flex items-center justify-between">
+                                <span class="text-xs font-bold text-[#1B4332] font-mono">
+                                    {{ $priceLabel }}
+                                </span>
+                                <!-- Tombol Bulat Hijau Gelap (+) Sesuai Mockup -->
+                                <span class="w-8 h-8 rounded-full bg-[#1B4332] text-white flex items-center justify-center text-sm font-bold group-hover:bg-[#143326] transition shadow-2xs active:scale-95">
+                                    +
+                                </span>
+                            </div>
+                        </div>
+                    @endforeach
+                @empty
+                    <div class="col-span-full py-12 text-center text-stone-400 text-xs">
+                        Belum ada menu produk terdaftar di database.
                     </div>
-                    <div>
-                        <label class="font-bold text-stone-700 text-[11px] block mb-1">Level Es</label>
-                        <select id="modal-ice-level" class="w-full px-2.5 py-2 border border-stone-300 rounded-xl bg-white text-xs">
-                            <option value="Normal">Normal Ice</option>
-                            <option value="Less Ice">Sedikit Es (Less Ice)</option>
-                            <option value="No Ice">Tanpa Es (Dingin)</option>
-                            <option value="Hangat">Hangat (Warm)</option>
-                        </select>
-                    </div>
+                @endforelse
+            </div>
+        </div>
+    </main>
+
+    <!-- ==============================================================
+         3. PANEL KANAN: PESANAN & CHECKOUT (PUTIH BERSIH #FFFFFF)
+         ============================================================== -->
+    <aside class="w-full md:w-80 lg:w-96 bg-white border-t md:border-t-0 md:border-l border-[#EBE6DD] shrink-0 flex flex-col justify-between shadow-xs z-20">
+        
+        <!-- Header Keranjang Pesanan -->
+        <div class="p-4 border-b border-[#EBE6DD] flex items-center justify-between">
+            <div>
+                <h2 class="font-bold text-sm text-[#1B4332]">Pesanan Baru</h2>
+                <span id="cart-item-count" class="text-[11px] text-stone-500 font-medium">0 item</span>
+            </div>
+            <button type="button" onclick="clearCart()"
+                class="text-xs text-stone-400 hover:text-rose-600 font-semibold transition active:scale-95 cursor-pointer">
+                Kosongkan
+            </button>
+        </div>
+
+        <!-- Daftar Item Pesanan (Scrollable) -->
+        <div class="flex-1 overflow-y-auto p-4 space-y-2.5 min-h-[160px] max-h-[300px] md:max-h-none" id="cart-scroll-container">
+            
+            <!-- State Kosong -->
+            <div id="empty-cart-state" class="py-12 text-center space-y-2 text-stone-400">
+                <div class="w-12 h-12 mx-auto rounded-full bg-[#F8F6F0] flex items-center justify-center text-stone-300">
+                    <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+                    </svg>
+                </div>
+                <p class="text-xs font-semibold text-stone-500">Pesanan Masih Kosong</p>
+                <p class="text-[11px] text-stone-400 max-w-[200px] mx-auto">Pilih menu es teh di sebelah kiri untuk menambahkan ke pesanan.</p>
+            </div>
+
+            <!-- List Item Keranjang Dinamis -->
+            <div id="cart-items-list" class="space-y-2.5 hidden"></div>
+        </div>
+
+        <!-- Panel Perhitungan & Pembayaran (Sticky Bottom) -->
+        <div class="p-4 border-t border-[#EBE6DD] bg-[#F8F6F0]/30 space-y-3 shrink-0">
+            
+            <!-- Rincian Total -->
+            <div class="space-y-1.5 text-xs">
+                <div class="flex justify-between text-stone-600">
+                    <span>Subtotal</span>
+                    <span id="cart-subtotal-display" class="font-mono font-semibold text-[#2D2D2D]">Rp 0</span>
+                </div>
+                <div class="flex justify-between text-stone-600">
+                    <span>Pajak (0%)</span>
+                    <span class="font-mono font-semibold text-[#2D2D2D]">Rp 0</span>
+                </div>
+                <div class="flex justify-between text-sm sm:text-base font-extrabold text-[#1B4332] pt-1.5 border-t border-[#EBE6DD]">
+                    <span>Total Belanja</span>
+                    <span id="cart-total-display" class="font-mono text-lg">Rp 0</span>
                 </div>
             </div>
 
-            <!-- Footer Modal -->
-            <div class="p-4 border-t border-stone-200 bg-stone-50 flex items-center justify-between shrink-0">
+            <!-- Pilihan Metode Bayar (Tunai vs QRIS) -->
+            <div class="grid grid-cols-2 gap-2 p-1 bg-[#F8F6F0] rounded-xl border border-[#EBE6DD]">
+                <button type="button" id="btn-pay-cash" onclick="selectPaymentMethod('cash')"
+                    class="py-2 px-3 rounded-lg text-xs font-bold flex items-center justify-center gap-1.5 transition cursor-pointer bg-white text-[#1B4332] shadow-2xs">
+                    <span>💵</span>
+                    <span>Tunai</span>
+                </button>
+                <button type="button" id="btn-pay-qris" onclick="selectPaymentMethod('qris')"
+                    class="py-2 px-3 rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 transition cursor-pointer text-stone-600 hover:text-[#2D2D2D]">
+                    <span>📱</span>
+                    <span>QRIS Statis</span>
+                </button>
+            </div>
+
+            <!-- Kotak Perhitungan Uang Tunai + Keypad Sentuh (Touch NumPad) -->
+            <div id="cash-calculator-box" class="space-y-2.5">
+                
+                <!-- Pilihan Nominal Cepat -->
+                <div class="grid grid-cols-4 gap-1.5">
+                    <button type="button" onclick="setCashExact()"
+                        class="py-1.5 rounded-lg bg-white border border-[#EBE6DD] hover:border-stone-300 text-[11px] font-bold text-[#1B4332] transition active:scale-95 cursor-pointer">
+                        Uang Pas
+                    </button>
+                    <button type="button" onclick="setCashAmount(10000)"
+                        class="py-1.5 rounded-lg bg-white border border-[#EBE6DD] hover:border-stone-300 text-[11px] font-mono font-bold text-[#2D2D2D] transition active:scale-95 cursor-pointer">
+                        10k
+                    </button>
+                    <button type="button" onclick="setCashAmount(20000)"
+                        class="py-1.5 rounded-lg bg-white border border-[#EBE6DD] hover:border-stone-300 text-[11px] font-mono font-bold text-[#2D2D2D] transition active:scale-95 cursor-pointer">
+                        20k
+                    </button>
+                    <button type="button" onclick="setCashAmount(50000)"
+                        class="py-1.5 rounded-lg bg-white border border-[#EBE6DD] hover:border-stone-300 text-[11px] font-mono font-bold text-[#2D2D2D] transition active:scale-95 cursor-pointer">
+                        50k
+                    </button>
+                </div>
+
+                <!-- Input Nominal Uang Diterima & Kembalian -->
+                <div class="grid grid-cols-2 gap-2 text-xs">
+                    <div>
+                        <label class="block text-[10px] font-bold text-stone-500 uppercase mb-1">Diterima (Rp)</label>
+                        <input type="number" id="cash-received-input" placeholder="0" min="0" oninput="calculateChange()"
+                            class="w-full px-2.5 py-1.5 bg-white border border-[#EBE6DD] rounded-xl font-mono font-bold text-sm text-[#2D2D2D] focus:outline-none focus:ring-1 focus:ring-[#1B4332]">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-bold text-stone-500 uppercase mb-1">Kembalian</label>
+                        <div id="change-display-box" class="px-2.5 py-1.5 bg-white border border-[#EBE6DD] rounded-xl font-mono font-bold text-sm text-[#1B4332] flex items-center justify-between">
+                            <span id="change-amount-display">Rp 0</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- KEYPAD ANGKA LAYAR SENTUH (TOUCHSCREEN NUMPAD) -->
+                <div class="grid grid-cols-3 gap-1.5 pt-1">
+                    <button type="button" onclick="numpadInput('1')" class="h-9 rounded-xl bg-white border border-[#EBE6DD] font-mono font-extrabold text-sm text-[#2D2D2D] hover:bg-stone-50 active:scale-95 cursor-pointer shadow-2xs">1</button>
+                    <button type="button" onclick="numpadInput('2')" class="h-9 rounded-xl bg-white border border-[#EBE6DD] font-mono font-extrabold text-sm text-[#2D2D2D] hover:bg-stone-50 active:scale-95 cursor-pointer shadow-2xs">2</button>
+                    <button type="button" onclick="numpadInput('3')" class="h-9 rounded-xl bg-white border border-[#EBE6DD] font-mono font-extrabold text-sm text-[#2D2D2D] hover:bg-stone-50 active:scale-95 cursor-pointer shadow-2xs">3</button>
+                    <button type="button" onclick="numpadInput('4')" class="h-9 rounded-xl bg-white border border-[#EBE6DD] font-mono font-extrabold text-sm text-[#2D2D2D] hover:bg-stone-50 active:scale-95 cursor-pointer shadow-2xs">4</button>
+                    <button type="button" onclick="numpadInput('5')" class="h-9 rounded-xl bg-white border border-[#EBE6DD] font-mono font-extrabold text-sm text-[#2D2D2D] hover:bg-stone-50 active:scale-95 cursor-pointer shadow-2xs">5</button>
+                    <button type="button" onclick="numpadInput('6')" class="h-9 rounded-xl bg-white border border-[#EBE6DD] font-mono font-extrabold text-sm text-[#2D2D2D] hover:bg-stone-50 active:scale-95 cursor-pointer shadow-2xs">6</button>
+                    <button type="button" onclick="numpadInput('7')" class="h-9 rounded-xl bg-white border border-[#EBE6DD] font-mono font-extrabold text-sm text-[#2D2D2D] hover:bg-stone-50 active:scale-95 cursor-pointer shadow-2xs">7</button>
+                    <button type="button" onclick="numpadInput('8')" class="h-9 rounded-xl bg-white border border-[#EBE6DD] font-mono font-extrabold text-sm text-[#2D2D2D] hover:bg-stone-50 active:scale-95 cursor-pointer shadow-2xs">8</button>
+                    <button type="button" onclick="numpadInput('9')" class="h-9 rounded-xl bg-white border border-[#EBE6DD] font-mono font-extrabold text-sm text-[#2D2D2D] hover:bg-stone-50 active:scale-95 cursor-pointer shadow-2xs">9</button>
+                    <button type="button" onclick="numpadInput('000')" class="h-9 rounded-xl bg-white border border-[#EBE6DD] font-mono font-bold text-xs text-stone-600 hover:bg-stone-50 active:scale-95 cursor-pointer shadow-2xs">000</button>
+                    <button type="button" onclick="numpadInput('0')" class="h-9 rounded-xl bg-white border border-[#EBE6DD] font-mono font-extrabold text-sm text-[#2D2D2D] hover:bg-stone-50 active:scale-95 cursor-pointer shadow-2xs">0</button>
+                    <button type="button" onclick="numpadBackspace()" class="h-9 rounded-xl bg-[#F8F6F0] border border-[#EBE6DD] font-bold text-xs text-rose-600 hover:bg-rose-50 active:scale-95 cursor-pointer shadow-2xs">⌫</button>
+                </div>
+            </div>
+
+            <!-- Kotak Info QRIS (Ditampilkan saat mode QRIS aktif) -->
+            <div id="qris-info-box" class="hidden p-3 bg-white border border-[#EBE6DD] rounded-xl text-center space-y-1">
+                <span class="inline-block px-2 py-0.5 rounded-full bg-[#1B4332]/10 text-[#1B4332] text-[10px] font-bold uppercase">
+                    Simulasi QRIS Gerai
+                </span>
+                <p class="text-[11px] text-stone-500">Tampilkan QR kepada pelanggan lalu konfirmasi lunas.</p>
+            </div>
+
+            <!-- Tombol Utama: BAYAR (Solid Hijau Gelap #1B4332) -->
+            <button type="button" id="btn-checkout" onclick="initiateCheckout()" disabled
+                class="w-full py-3.5 px-4 bg-[#1B4332] hover:bg-[#143326] disabled:bg-stone-200 disabled:text-stone-400 text-white font-extrabold text-sm rounded-xl shadow-md transition active:scale-[0.99] flex items-center justify-center gap-2 cursor-pointer disabled:cursor-not-allowed">
+                <span id="btn-checkout-text">BAYAR</span>
+            </button>
+        </div>
+    </aside>
+
+    <!-- ==============================================================
+         4. MODAL DETAIL VARIAN PRODUK (UKURAN & TOPPING)
+         ============================================================== -->
+    <div id="product-modal" class="fixed inset-0 bg-black/40 backdrop-blur-xs z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-3xl max-w-sm w-full p-5 border border-[#EBE6DD] shadow-2xl space-y-4 animate-in fade-in zoom-in-95 duration-150">
+            <div class="flex items-center justify-between pb-3 border-b border-[#EBE6DD]">
+                <h3 class="font-extrabold text-sm text-[#1B4332]" id="modal-product-name">Varian Minuman</h3>
+                <button type="button" onclick="closeProductModal()" class="w-7 h-7 rounded-full bg-[#F8F6F0] text-stone-400 hover:text-stone-700 flex items-center justify-center text-xs cursor-pointer">
+                    ✕
+                </button>
+            </div>
+
+            <!-- Pilihan Ukuran Cup -->
+            <div class="space-y-1.5">
+                <label class="block text-[11px] font-bold text-stone-600 uppercase">Pilih Ukuran Cup</label>
+                <div class="grid grid-cols-2 gap-2" id="modal-variations-container"></div>
+            </div>
+
+            <!-- Pilihan Topping -->
+            <div class="space-y-1.5">
+                <label class="block text-[11px] font-bold text-stone-600 uppercase">Topping Tambahan</label>
+                <div class="grid grid-cols-2 gap-2">
+                    @foreach ($toppings as $top)
+                        <label class="p-2.5 rounded-xl border border-[#EBE6DD] bg-[#F8F6F0]/40 flex items-center gap-2 cursor-pointer text-xs">
+                            <input type="checkbox" name="modal_toppings" value="{{ $top->id }}" data-price="{{ $top->price }}" data-name="{{ $top->name }}"
+                                onchange="recalculateModalPrice()"
+                                class="w-3.5 h-3.5 text-[#1B4332] rounded border-[#EBE6DD] focus:ring-[#1B4332]">
+                            <span class="font-medium text-[#2D2D2D] truncate">{{ $top->name }} (+{{ number_format($top->price/1000, 0) }}k)</span>
+                        </label>
+                    @endforeach
+                </div>
+            </div>
+
+            <!-- Opsi Gula & Es -->
+            <div class="grid grid-cols-2 gap-2 text-xs">
                 <div>
-                    <span class="text-[10px] font-bold text-stone-500 uppercase tracking-wider block">Subtotal</span>
-                    <span id="modal-subtotal-price" class="text-xl font-black text-stone-900 font-mono">Rp 0</span>
+                    <label class="block text-[11px] font-bold text-stone-600 uppercase mb-1">Gula</label>
+                    <select id="modal-sugar-level" class="w-full px-2.5 py-1.5 bg-[#F8F6F0] border border-[#EBE6DD] rounded-xl text-xs font-semibold focus:outline-none">
+                        <option value="Normal">Normal (100%)</option>
+                        <option value="Less Sugar">Sedang (70%)</option>
+                        <option value="No Sugar">Tanpa Gula</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-[11px] font-bold text-stone-600 uppercase mb-1">Es Batu</label>
+                    <select id="modal-ice-level" class="w-full px-2.5 py-1.5 bg-[#F8F6F0] border border-[#EBE6DD] rounded-xl text-xs font-semibold focus:outline-none">
+                        <option value="Normal">Normal</option>
+                        <option value="Less Ice">Sedikit Es</option>
+                        <option value="No Ice">Tanpa Es</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Subtotal & Konfirmasi Tambah -->
+            <div class="pt-3 border-t border-[#EBE6DD] flex items-center justify-between">
+                <div>
+                    <span class="text-[10px] text-stone-400 block uppercase">Subtotal</span>
+                    <span class="font-mono font-extrabold text-base text-[#1B4332]" id="modal-subtotal-price">Rp 0</span>
                 </div>
                 <button type="button" onclick="addToCartFromModal()"
-                    class="py-2.5 px-5 bg-[#0e2a1d] hover:bg-[#163e2c] text-white font-bold rounded-xl text-xs shadow-xs transition active:scale-95 flex items-center gap-1.5 cursor-pointer">
-                    <span>+</span> Tambah ke Pesanan
+                    class="py-2.5 px-4 bg-[#1B4332] hover:bg-[#143326] text-white font-bold text-xs rounded-xl shadow-xs active:scale-95 cursor-pointer">
+                    + Tambah ke Pesanan
                 </button>
             </div>
         </div>
     </div>
 
-    <!-- ==============================================
-         MODAL 2: POP-UP QRIS SIMULASI LOKAL (KEDAI SENJA STYLE)
-         ============================================== -->
-    <div id="qris-modal" class="hidden fixed inset-0 z-50 bg-stone-900/60 backdrop-blur-xs flex items-center justify-center p-4">
-        <div class="bg-white rounded-3xl max-w-sm w-full p-6 shadow-2xl border border-stone-200 space-y-4 text-center">
+    <!-- ==============================================================
+         5. MODAL QRIS SIMULASI (VERIFIKASI KASIR)
+         ============================================================== -->
+    <div id="qris-modal" class="fixed inset-0 bg-black/40 backdrop-blur-xs z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-3xl max-w-sm w-full p-6 border border-[#EBE6DD] shadow-2xl text-center space-y-4 animate-in fade-in zoom-in-95 duration-150">
             <div class="space-y-1">
-                <span class="px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-800 text-[10px] font-extrabold uppercase tracking-wider border border-emerald-200">
-                    QRIS Dinamis Simulasi
+                <span class="px-2.5 py-1 rounded-full bg-[#1B4332]/10 text-[#1B4332] text-[10px] font-bold uppercase tracking-wider">
+                    QRIS Statis Simulasi
                 </span>
-                <h3 class="text-lg font-black text-stone-900">Scan QRIS Pembayaran</h3>
-                <p class="text-xs text-stone-500">Minta pembeli melakukan scan QR di bawah ini.</p>
+                <h3 class="text-base font-extrabold text-[#2D2D2D]">Pindai untuk Membayar</h3>
             </div>
 
-            <!-- Gambar QR Code Simulasi -->
-            <div class="p-4 bg-white border border-stone-200 rounded-2xl inline-block shadow-2xs">
-                <svg class="w-48 h-48 mx-auto" viewBox="0 0 100 100" fill="none">
-                    <!-- Simulasi Pola QR Code Elegan -->
-                    <rect width="100" height="100" fill="white" />
-                    <rect x="10" y="10" width="25" height="25" fill="#0e2a1d" />
-                    <rect x="15" y="15" width="15" height="15" fill="white" />
-                    <rect x="18" y="18" width="9" height="9" fill="#0e2a1d" />
-                    
-                    <rect x="65" y="10" width="25" height="25" fill="#0e2a1d" />
-                    <rect x="70" y="15" width="15" height="15" fill="white" />
-                    <rect x="73" y="18" width="9" height="9" fill="#0e2a1d" />
-                    
-                    <rect x="10" y="65" width="25" height="25" fill="#0e2a1d" />
-                    <rect x="15" y="70" width="15" height="15" fill="white" />
-                    <rect x="18" y="73" width="9" height="9" fill="#0e2a1d" />
-                    
-                    <!-- Titik-titik Data -->
-                    <rect x="42" y="12" width="6" height="6" fill="#0e2a1d" />
-                    <rect x="52" y="18" width="6" height="6" fill="#0e2a1d" />
-                    <rect x="45" y="28" width="8" height="8" fill="#0e2a1d" />
-                    <rect x="12" y="42" width="6" height="6" fill="#0e2a1d" />
-                    <rect x="25" y="48" width="6" height="6" fill="#0e2a1d" />
-                    <rect x="40" y="40" width="20" height="20" fill="#0e2a1d" rx="4" />
-                    <rect x="45" y="45" width="10" height="10" fill="white" rx="2" />
-                    <rect x="68" y="42" width="8" height="8" fill="#0e2a1d" />
-                    <rect x="80" y="48" width="8" height="8" fill="#0e2a1d" />
-                    <rect x="42" y="68" width="8" height="8" fill="#0e2a1d" />
-                    <rect x="55" y="75" width="6" height="6" fill="#0e2a1d" />
-                    <rect x="72" y="70" width="12" height="12" fill="#0e2a1d" />
-                </svg>
+            <!-- Kode QR Simulasi -->
+            <div class="w-48 h-48 mx-auto p-3 bg-white rounded-2xl border-2 border-[#1B4332] flex items-center justify-center shadow-xs">
+                <div class="space-y-2 text-center">
+                    <div class="w-32 h-32 bg-stone-100 rounded-lg flex items-center justify-center text-xs font-mono font-bold text-stone-400 border border-stone-200">
+                        [ QRIS PERKASA ]
+                    </div>
+                </div>
             </div>
 
-            <!-- Tagihan QRIS -->
-            <div class="space-y-0.5">
-                <span class="text-[11px] text-stone-500 uppercase tracking-wider block">Total Tagihan</span>
-                <span id="qris-modal-amount" class="text-2xl font-black text-stone-900 font-mono">Rp 0</span>
+            <div>
+                <span class="text-xs text-stone-500">Nominal Tagihan:</span>
+                <div class="text-xl font-extrabold font-mono text-[#1B4332]" id="qris-modal-amount">Rp 0</div>
             </div>
 
-            <!-- Tombol Aksi QRIS -->
-            <div class="space-y-2 pt-1">
-                <button type="button" onclick="confirmQrisPayment()"
-                    class="w-full py-3 bg-[#0e2a1d] hover:bg-[#153b2a] text-white font-bold rounded-xl text-xs shadow-sm transition active:scale-95 cursor-pointer">
-                    ✓ Konfirmasi Pembayaran Berhasil (Simulasi)
-                </button>
+            <div class="grid grid-cols-2 gap-2 pt-2">
                 <button type="button" onclick="closeQrisModal()"
-                    class="w-full py-2 bg-stone-100 hover:bg-stone-200 text-stone-600 font-semibold rounded-xl text-xs transition cursor-pointer">
+                    class="py-2.5 rounded-xl border border-[#EBE6DD] text-stone-600 font-bold text-xs hover:bg-[#F8F6F0] transition active:scale-95 cursor-pointer">
                     Batal
                 </button>
+                <button type="button" onclick="confirmQrisPayment()"
+                    class="py-2.5 rounded-xl bg-[#1B4332] hover:bg-[#143326] text-white font-bold text-xs transition active:scale-95 cursor-pointer shadow-xs">
+                    ✓ Verifikasi Lunas
+                </button>
             </div>
         </div>
     </div>
 
-    <!-- ==============================================
-         MODAL 3: PEMBAYARAN BERHASIL & STRUK THERMAL 58MM (REF 15)
-         ============================================== -->
-    <div id="receipt-modal" class="hidden fixed inset-0 z-50 bg-stone-900/70 backdrop-blur-xs flex items-center justify-center p-4">
-        <div class="bg-white rounded-3xl max-w-sm w-full p-5 shadow-2xl border border-stone-200 flex flex-col space-y-4 animate-in fade-in zoom-in-95 duration-150">
-            <!-- Icon Check Sukses & Status -->
+    <!-- ==============================================================
+         6. MODAL SUKSES & PREVIEW STRUK THERMAL 58MM
+         ============================================================== -->
+    <div id="receipt-modal" class="fixed inset-0 bg-black/40 backdrop-blur-xs z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-3xl max-w-sm w-full p-5 border border-[#EBE6DD] shadow-2xl space-y-4 animate-in fade-in zoom-in-95 duration-150">
+            <!-- Icon & Status Berhasil -->
             <div class="text-center space-y-1">
-                <div class="w-12 h-12 rounded-full bg-emerald-500 text-white flex items-center justify-center text-xl font-bold mx-auto mb-1.5 shadow-md shadow-emerald-500/20">
+                <div class="w-12 h-12 mx-auto rounded-full bg-emerald-50 text-emerald-700 flex items-center justify-center text-xl font-bold border border-emerald-200">
                     ✓
                 </div>
-                <h3 id="success-lunas-amount" class="text-xl font-black text-stone-900 font-mono">Rp 0 Lunas</h3>
-                <p id="success-breakdown-text" class="text-xs text-stone-500 font-medium">Tunai Rp 0 &bull; Kembalian Rp 0</p>
+                <h3 class="text-base font-extrabold text-[#1B4332]">Transaksi Berhasil!</h3>
+                <p class="text-xs font-mono font-bold text-emerald-800" id="success-lunas-amount">Rp 0 Lunas</p>
+                <p class="text-[11px] text-stone-400" id="success-breakdown-text">Tunai • Kembalian</p>
             </div>
 
-            <!-- KERTAS NOTA THERMAL 58MM -->
-            <div id="thermal-receipt-area" class="bg-stone-50 p-3.5 rounded-2xl border border-dashed border-stone-300 font-mono text-xs text-stone-900 leading-tight space-y-2">
-                <div class="text-center space-y-0.5">
-                    <p class="font-extrabold text-sm tracking-wider uppercase">ES TEH PERKASA</p>
-                    <p class="text-[10px] text-stone-600">{{ $outlet->name ?? 'Gerai Utama' }}</p>
-                    <p class="text-[10px] text-stone-500">{{ $outlet->address ?? 'Kota Pelayanan' }}</p>
-                    <p class="text-[10px] text-stone-500">Telp: {{ $outlet->phone ?? '081111222333' }}</p>
+            <!-- Preview Struk 58mm di Layar -->
+            <div class="p-3 bg-[#F8F6F0] rounded-2xl border border-[#EBE6DD] font-mono text-[11px] space-y-2 text-[#2D2D2D] max-h-56 overflow-y-auto">
+                <div class="text-center border-b border-[#EBE6DD] pb-2 space-y-0.5">
+                    <div class="font-extrabold text-xs text-[#1B4332]">ES TEH PERKASA</div>
+                    <div class="text-[9px] text-stone-500">{{ $outlet->address ?? 'Gerai Es Teh Perkasa' }}</div>
+                    <div class="text-[9px] text-stone-400">Nota: <span id="rc-invoice">-</span> • <span id="rc-date">-</span></div>
                 </div>
 
-                <div class="border-t border-dashed border-stone-400 pt-1.5 text-[10px] space-y-0.5">
-                    <div class="flex justify-between">
-                        <span>No. Nota:</span>
-                        <span id="rc-invoice" class="font-bold">INV-0000</span>
-                    </div>
-                    <div class="flex justify-between">
-                        <span>Tanggal:</span>
-                        <span id="rc-date">--/--/--</span>
-                    </div>
-                    <div class="flex justify-between">
-                        <span>Kasir:</span>
-                        <span id="rc-cashier">{{ $user->name }}</span>
-                    </div>
-                </div>
+                <!-- List Item Nota -->
+                <div id="rc-items-list" class="space-y-1.5 border-b border-[#EBE6DD] pb-2"></div>
 
-                <div class="border-t border-dashed border-stone-400 pt-1.5 space-y-1" id="rc-items-list">
-                    <!-- Rincian Item Nota (Diisi JS) -->
-                </div>
-
-                <div class="border-t border-dashed border-stone-400 pt-1.5 text-[11px] space-y-0.5">
-                    <div class="flex justify-between font-bold text-xs">
-                        <span>TOTAL:</span>
+                <!-- Rincian Biaya Nota -->
+                <div class="space-y-0.5 pt-1 text-[10px]">
+                    <div class="flex justify-between font-extrabold text-xs text-[#1B4332]">
+                        <span>TOTAL</span>
                         <span id="rc-total">Rp 0</span>
                     </div>
-                    <div class="flex justify-between text-[10px]">
-                        <span>Metode:</span>
-                        <span id="rc-method" class="uppercase">TUNAI</span>
-                    </div>
-                    <div class="flex justify-between text-[10px]">
-                        <span>Bayar:</span>
+                    <div class="flex justify-between text-stone-500">
+                        <span>Bayar (<span id="rc-method">Tunai</span>)</span>
                         <span id="rc-paid">Rp 0</span>
                     </div>
-                    <div class="flex justify-between text-[10px] font-bold">
-                        <span>Kembali:</span>
+                    <div class="flex justify-between text-stone-500">
+                        <span>Kembalian</span>
                         <span id="rc-change">Rp 0</span>
                     </div>
                 </div>
-
-                <div class="border-t border-dashed border-stone-400 pt-2 text-center text-[10px] text-stone-500">
-                    <p>Terima kasih atas kunjungan Anda!</p>
-                    <p>Segar & Nikmat Setiap Hari</p>
-                </div>
             </div>
 
-            <!-- Tombol Aksi Nota (Ref 15) -->
-            <div class="space-y-2 pt-1">
-                <button type="button" onclick="closeReceiptModal()"
-                    class="w-full py-3 bg-[#0e2a1d] hover:bg-[#163f2d] text-white font-bold rounded-xl text-xs flex items-center justify-center gap-1.5 transition active:scale-95 cursor-pointer shadow-xs">
-                    <span>→</span> Pesanan Berikutnya
-                </button>
+            <!-- Aksi: Cetak Struk & Pesanan Baru -->
+            <div class="grid grid-cols-2 gap-2 pt-1">
                 <button type="button" onclick="window.print()"
-                    class="w-full py-2.5 bg-white hover:bg-stone-100 border border-stone-300 text-stone-800 font-bold rounded-xl text-xs flex items-center justify-center gap-1.5 transition active:scale-95 cursor-pointer">
-                    <span>🖨️</span> Cetak Struk
+                    class="py-2.5 rounded-xl border border-[#1B4332] text-[#1B4332] font-bold text-xs hover:bg-emerald-50 transition active:scale-95 cursor-pointer flex items-center justify-center gap-1.5">
+                    <span>🖨️</span>
+                    <span>Cetak Struk</span>
+                </button>
+                <button type="button" onclick="closeReceiptModal()"
+                    class="py-2.5 rounded-xl bg-[#1B4332] hover:bg-[#143326] text-white font-bold text-xs transition active:scale-95 cursor-pointer shadow-xs">
+                    Pesanan Baru →
                 </button>
             </div>
         </div>
     </div>
 
-    <!-- ==============================================
-         MODAL 4: RIWAYAT NOTA SHIFT AKTIF & VOID
-         ============================================== -->
-    <div id="history-modal" class="hidden fixed inset-0 z-50 bg-stone-900/60 backdrop-blur-xs flex items-center justify-center p-4">
-        <div class="bg-white rounded-3xl max-w-lg w-full p-5 shadow-2xl border border-stone-200 flex flex-col space-y-4 max-h-[85vh]">
-            <div class="flex items-center justify-between border-b border-stone-200 pb-3">
+    <!-- ==============================================================
+         7. MODAL RIWAYAT NOTA & VOID
+         ============================================================== -->
+    <div id="history-modal" class="fixed inset-0 bg-black/40 backdrop-blur-xs z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-3xl max-w-lg w-full p-5 border border-[#EBE6DD] shadow-2xl space-y-4">
+            <div class="flex items-center justify-between pb-3 border-b border-[#EBE6DD]">
                 <div>
-                    <h3 class="font-bold text-sm text-stone-900">Riwayat Nota Shift Aktif</h3>
-                    <p class="text-xs text-stone-500">Daftar transaksi kasir yang tercatat pada shift ini.</p>
+                    <h3 class="font-extrabold text-sm text-[#1B4332]">Riwayat Nota Hari Ini</h3>
+                    <p class="text-[11px] text-stone-500">Daftar transaksi nota shift yang sedang aktif</p>
                 </div>
-                <button type="button" onclick="closeHistoryModal()" class="w-8 h-8 rounded-full bg-stone-100 hover:bg-stone-200 text-stone-600 flex items-center justify-center text-sm font-bold cursor-pointer">✕</button>
+                <button type="button" onclick="closeHistoryModal()" class="w-7 h-7 rounded-full bg-[#F8F6F0] text-stone-400 hover:text-stone-700 flex items-center justify-center text-xs cursor-pointer">
+                    ✕
+                </button>
             </div>
 
-            <div class="flex-1 overflow-y-auto space-y-2 text-xs">
+            <div class="overflow-y-auto max-h-72 space-y-2">
                 @forelse ($recentTransactions as $tx)
-                    <div class="p-3 rounded-xl border border-stone-200 bg-stone-50/70 flex items-center justify-between gap-2">
+                    <div class="p-3 rounded-2xl border border-[#EBE6DD] bg-[#F8F6F0]/40 flex items-center justify-between text-xs">
                         <div>
-                            <div class="flex items-center gap-2">
-                                <span class="font-mono font-bold text-stone-900">{{ $tx->invoice_number }}</span>
-                                <span class="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase
-                                    {{ $tx->payment_status === 'paid' ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800' }}">
-                                    {{ $tx->payment_status }}
-                                </span>
-                            </div>
-                            <p class="text-[11px] text-stone-500 mt-0.5">
-                                {{ $tx->created_at->format('H:i') }} WIB &bull; Metode: {{ strtoupper($tx->payment_method) }}
-                            </p>
-                            <p class="font-mono font-extrabold text-stone-900 mt-1">
-                                Rp {{ number_format($tx->total_amount, 0, ',', '.') }}
-                            </p>
+                            <div class="font-mono font-bold text-[#1B4332]">{{ $tx->invoice_number }}</div>
+                            <div class="text-[11px] text-stone-500">{{ $tx->created_at->format('H:i') }} WIB • {{ ucfirst($tx->payment_method) }}</div>
+                            <div class="font-mono font-extrabold text-[#2D2D2D] mt-0.5">Rp {{ number_format($tx->total_amount, 0, ',', '.') }}</div>
                         </div>
-
-                        @if ($tx->payment_status === 'paid')
-                            <button type="button" onclick="promptVoid({{ $tx->id }}, '{{ $tx->invoice_number }}')"
-                                class="px-3 py-1.5 bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold rounded-lg border border-rose-200 text-[11px] transition active:scale-95 cursor-pointer">
-                                Batalkan (Void)
-                            </button>
-                        @else
-                            <span class="text-[11px] text-stone-400 italic">Dibatalkan</span>
-                        @endif
+                        <div>
+                            @if ($tx->status === 'void')
+                                <span class="px-2.5 py-1 rounded-full bg-rose-100 text-rose-700 font-bold text-[10px]">
+                                    Dibatalkan (Void)
+                                </span>
+                            @else
+                                <button type="button" onclick="promptVoid({{ $tx->id }}, '{{ $tx->invoice_number }}')"
+                                    class="px-2.5 py-1.5 rounded-xl border border-rose-200 text-rose-700 hover:bg-rose-50 font-bold text-[11px] transition active:scale-95 cursor-pointer">
+                                    Void Nota
+                                </button>
+                            @endif
+                        </div>
                     </div>
                 @empty
-                    <div class="py-12 text-center text-stone-400">
-                        <p class="text-3xl mb-1">🧾</p>
-                        <p class="text-xs">Belum ada nota transaksi pada shift ini.</p>
+                    <div class="py-8 text-center text-stone-400 text-xs">
+                        Belum ada transaksi pada shift ini.
                     </div>
                 @endforelse
             </div>
         </div>
     </div>
 
-    <!-- ==============================================
-         MODAL 5: BUKA SHIFT KASIR (MODAL AWAL LACI)
-         ============================================== -->
-    <div id="start-shift-modal" class="{{ $activeShift ? 'hidden' : '' }} fixed inset-0 z-50 bg-stone-900/70 backdrop-blur-xs flex items-center justify-center p-4">
-        <div class="bg-white rounded-3xl max-w-sm w-full p-6 shadow-2xl border border-stone-200 space-y-4">
-            <div class="text-center">
-                <div class="w-12 h-12 rounded-2xl bg-[#0e2a1d] text-white flex items-center justify-center text-xl mx-auto mb-2 shadow-xs">
-                    💵
-                </div>
-                <h3 class="font-bold text-base text-stone-900">Buka Shift Kasir</h3>
-                <p class="text-xs text-stone-500 mt-1">Masukkan modal awal uang kembalian di laci kasir.</p>
+    <!-- ==============================================================
+         8. MODAL BUKA SHIFT
+         ============================================================== -->
+    <div id="start-shift-modal" class="fixed inset-0 bg-black/40 backdrop-blur-xs z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-3xl max-w-sm w-full p-5 border border-[#EBE6DD] shadow-2xl space-y-4">
+            <div class="space-y-1 text-center">
+                <span class="text-2xl">🌅</span>
+                <h3 class="font-extrabold text-base text-[#1B4332]">Buka Shift Mesin Kasir</h3>
+                <p class="text-xs text-stone-500">Masukkan saldo awal uang kas fisik di laci kasir.</p>
             </div>
 
             <div class="space-y-2">
-                <label class="text-xs font-bold text-stone-700 block">Modal Awal Laci (Rp)</label>
-                <input type="number" id="shift-opening-cash" value="0" min="0" step="5000"
-                    class="w-full px-3 py-2.5 bg-stone-50 border border-stone-300 rounded-xl text-base font-mono font-bold text-stone-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#0e2a1d]">
+                <label class="block text-xs font-bold text-stone-700">Modal Awal Kas (Rp)</label>
+                <input type="number" id="shift-opening-cash" value="100000" min="0"
+                    class="w-full px-3 py-2.5 bg-[#F8F6F0] border border-[#EBE6DD] rounded-xl text-sm font-mono font-bold text-[#2D2D2D] focus:outline-none focus:ring-2 focus:ring-[#1B4332]">
+                
                 <div class="grid grid-cols-3 gap-1.5 pt-1">
-                    <button type="button" onclick="setShiftOpeningPreset(0)" class="py-1.5 bg-stone-100 hover:bg-stone-200 text-stone-800 text-xs font-semibold rounded-lg">Rp 0</button>
-                    <button type="button" onclick="setShiftOpeningPreset(50000)" class="py-1.5 bg-stone-100 hover:bg-stone-200 text-stone-800 text-xs font-semibold rounded-lg">50.000</button>
-                    <button type="button" onclick="setShiftOpeningPreset(100000)" class="py-1.5 bg-stone-100 hover:bg-stone-200 text-stone-800 text-xs font-semibold rounded-lg">100.000</button>
+                    <button type="button" onclick="setShiftOpeningPreset(0)" class="py-1 rounded-lg bg-[#F8F6F0] text-[11px] font-bold text-stone-600">Rp 0</button>
+                    <button type="button" onclick="setShiftOpeningPreset(50000)" class="py-1 rounded-lg bg-[#F8F6F0] text-[11px] font-bold text-stone-600">50k</button>
+                    <button type="button" onclick="setShiftOpeningPreset(100000)" class="py-1 rounded-lg bg-[#F8F6F0] text-[11px] font-bold text-stone-600">100k</button>
                 </div>
             </div>
 
-            <button type="button" onclick="submitOpenShift()"
-                class="w-full py-3 bg-[#0e2a1d] hover:bg-[#163f2d] text-white font-bold rounded-xl text-xs transition active:scale-95 shadow-xs cursor-pointer">
-                Buka Kasir & Mulai Jualan
-            </button>
+            <div class="grid grid-cols-2 gap-2 pt-2">
+                <button type="button" onclick="document.getElementById('start-shift-modal').classList.add('hidden')"
+                    class="py-2.5 rounded-xl border border-[#EBE6DD] text-stone-600 font-bold text-xs hover:bg-[#F8F6F0]">
+                    Batal
+                </button>
+                <button type="button" onclick="submitOpenShift()"
+                    class="py-2.5 rounded-xl bg-[#1B4332] hover:bg-[#143326] text-white font-bold text-xs shadow-xs">
+                    Mulai Shift
+                </button>
+            </div>
         </div>
     </div>
 
-    <!-- ==============================================
-         MODAL 6: TUTUP SHIFT KASIR (REKAP UANG FISIK)
-         ============================================== -->
-    <div id="close-shift-modal" class="hidden fixed inset-0 z-50 bg-stone-900/60 backdrop-blur-xs flex items-center justify-center p-4">
-        <div class="bg-white rounded-3xl max-w-sm w-full p-6 shadow-2xl border border-stone-200 space-y-4">
-            <div class="flex items-center justify-between border-b border-stone-100 pb-2">
-                <h3 class="font-bold text-sm text-stone-900">Tutup Shift Kasir</h3>
-                <button type="button" onclick="closeCloseShiftModal()" class="text-stone-400 hover:text-stone-700">✕</button>
+    <!-- ==============================================================
+         9. MODAL TUTUP SHIFT & REKONSILIASI KAS
+         ============================================================== -->
+    <div id="close-shift-modal" class="fixed inset-0 bg-black/40 backdrop-blur-xs z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-3xl max-w-sm w-full p-5 border border-[#EBE6DD] shadow-2xl space-y-4">
+            <div class="space-y-1 text-center">
+                <span class="text-2xl">🌙</span>
+                <h3 class="font-extrabold text-base text-[#1B4332]">Tutup Shift & Rekonsiliasi</h3>
+                <p class="text-xs text-stone-500">Hitung total uang fisik tunai di laci kasir saat ini.</p>
             </div>
 
-            <p class="text-xs text-stone-600 leading-relaxed">
-                Hitung seluruh uang fisik di laci saat ini (modal awal + penerimaan uang kasir tunai).
-            </p>
-
-            <div class="space-y-1.5">
-                <label class="text-xs font-semibold text-stone-700 block">Uang Fisik Aktual di Laci (Rp)</label>
-                <input type="number" id="shift-actual-cash" placeholder="0" min="0" step="5000"
-                    class="w-full px-3 py-2.5 bg-white border border-stone-300 rounded-xl text-base font-mono font-bold text-stone-900 focus:outline-none focus:ring-2 focus:ring-[#0e2a1d]">
+            <div class="space-y-2">
+                <label class="block text-xs font-bold text-stone-700">Total Uang Fisik Kasir (Rp)</label>
+                <input type="number" id="shift-actual-cash" placeholder="0" min="0"
+                    class="w-full px-3 py-2.5 bg-[#F8F6F0] border border-[#EBE6DD] rounded-xl text-sm font-mono font-bold text-[#2D2D2D] focus:outline-none focus:ring-2 focus:ring-[#1B4332]">
             </div>
 
-            <button type="button" onclick="submitCloseShift()"
-                class="w-full py-3 bg-rose-600 hover:bg-rose-700 text-white font-bold rounded-xl text-xs transition active:scale-95 shadow-xs cursor-pointer">
-                Tutup Shift & Hitung Rekap
-            </button>
+            <div class="grid grid-cols-2 gap-2 pt-2">
+                <button type="button" onclick="closeCloseShiftModal()"
+                    class="py-2.5 rounded-xl border border-[#EBE6DD] text-stone-600 font-bold text-xs hover:bg-[#F8F6F0]">
+                    Batal
+                </button>
+                <button type="button" onclick="submitCloseShift()"
+                    class="py-2.5 rounded-xl bg-rose-700 hover:bg-rose-800 text-white font-bold text-xs shadow-xs">
+                    Tutup Kasir
+                </button>
+            </div>
         </div>
     </div>
 
-    <!-- ==============================================
-         LOGIKA APLIKASI KASIR POS LENGKAP & REAKTIF
-         ============================================== -->
+    <!-- ELEMEN ISOLASI CETAK NOTA THERMAL 58MM (@media print) -->
+    <div id="thermal-receipt-area" class="hidden">
+        <div style="text-align: center; margin-bottom: 6px;">
+            <div style="font-size: 13px; font-weight: bold;">ES TEH PERKASA</div>
+            <div style="font-size: 9px;">{{ $outlet->address ?? 'Gerai Utama' }}</div>
+            <div style="font-size: 9px; margin-top: 3px;">--------------------------------</div>
+        </div>
+        <div style="font-size: 9px; margin-bottom: 5px;">
+            <div>Nota   : <span id="print-rc-invoice">-</span></div>
+            <div>Waktu  : <span id="print-rc-date">-</span></div>
+            <div>Kasir  : {{ $user->name }}</div>
+            <div>--------------------------------</div>
+        </div>
+        <div id="print-rc-items" style="font-size: 9px; margin-bottom: 5px;"></div>
+        <div style="font-size: 9px; border-top: 1px dashed #000; padding-top: 4px;">
+            <div style="display: flex; justify-content: space-between; font-weight: bold; font-size: 11px;">
+                <span>TOTAL:</span>
+                <span id="print-rc-total">Rp 0</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; margin-top: 2px;">
+                <span>Bayar:</span>
+                <span id="print-rc-paid">Rp 0</span>
+            </div>
+            <div style="display: flex; justify-content: space-between;">
+                <span>Kembalian:</span>
+                <span id="print-rc-change">Rp 0</span>
+            </div>
+            <div style="text-align: center; margin-top: 8px; font-size: 9px;">
+                <div>Terima Kasih</div>
+                <div>Es Teh Perkasa - Rasa Otentik</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==============================================================
+         LOGIKA APLIKASI KASIR (VANILLA JS REAKTIF & CEPAT)
+         ============================================================== -->
     <script>
-        // State Kasir
+        const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+        
+        let categoriesData = @json($categories);
         let cart = [];
         let activePaymentMethod = 'cash';
-        let cashReceived = 0;
         let currentModalProduct = null;
         let selectedVariation = null;
 
-        const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
-
-        // 1. Jam Realtime Topbar
+        // 1. Jam Realtime WIB
         function updateClock() {
             const now = new Date();
-            const timeStr = now.toLocaleTimeString('id-ID', { hour12: false }) + ' WIB';
-            const clockEl = document.getElementById('current-clock');
-            if (clockEl) clockEl.textContent = timeStr;
+            const timeStr = now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' }) + ' WIB';
+            const el = document.getElementById('current-clock');
+            if (el) el.textContent = timeStr;
         }
         setInterval(updateClock, 1000);
         updateClock();
 
-        // 2. Filter Kategori & Pencarian Menu
+        // 2. Filter Kategori & Pencarian
         function filterCategory(catId) {
             document.querySelectorAll('.cat-pill').forEach(btn => {
                 if (btn.dataset.cat === String(catId)) {
-                    btn.className = 'cat-pill active px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition cursor-pointer bg-[#0e2a1d] text-white shadow-xs';
+                    btn.className = 'cat-pill active px-4 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition cursor-pointer bg-[#1B4332] text-white shadow-xs';
                 } else {
-                    btn.className = 'cat-pill px-4 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition cursor-pointer bg-stone-100 text-stone-600 hover:bg-stone-200 hover:text-stone-900';
+                    btn.className = 'cat-pill px-4 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition cursor-pointer bg-white text-[#2D2D2D] border border-[#EBE6DD] hover:bg-stone-50';
                 }
             });
+
             applyFilters();
         }
 
         const searchInput = document.getElementById('menu-search');
         const clearSearchBtn = document.getElementById('clear-search');
+
         if (searchInput) {
-            searchInput.addEventListener('input', () => {
-                if (searchInput.value.trim().length > 0) {
-                    clearSearchBtn.classList.remove('hidden');
-                } else {
-                    clearSearchBtn.classList.add('hidden');
+            searchInput.addEventListener('input', function () {
+                if (clearSearchBtn) {
+                    clearSearchBtn.classList.toggle('hidden', !this.value);
                 }
                 applyFilters();
             });
         }
 
         function clearSearch() {
-            searchInput.value = '';
-            clearSearchBtn.classList.add('hidden');
-            applyFilters();
-        }
-
-        function applyFilters() {
-            const query = (searchInput ? searchInput.value.toLowerCase().trim() : '');
-            const activeCatBtn = document.querySelector('.cat-pill.bg-\\[\\#0e2a1d\\]');
-            const activeCat = activeCatBtn ? activeCatBtn.dataset.cat : 'all';
-
-            const cards = document.querySelectorAll('.product-card');
-            let visibleCount = 0;
-
-            cards.forEach(card => {
-                const name = card.dataset.name.toLowerCase();
-                const cat = card.dataset.cat;
-
-                const matchCat = (activeCat === 'all' || cat === activeCat);
-                const matchSearch = (!query || name.includes(query));
-
-                if (matchCat && matchSearch) {
-                    card.classList.remove('hidden');
-                    visibleCount++;
-                } else {
-                    card.classList.add('hidden');
-                }
-            });
-
-            const noResult = document.getElementById('no-search-results');
-            if (noResult) {
-                if (visibleCount === 0 && cards.length > 0) {
-                    noResult.classList.remove('hidden');
-                } else {
-                    noResult.classList.add('hidden');
-                }
+            if (searchInput) {
+                searchInput.value = '';
+                clearSearchBtn.classList.add('hidden');
+                applyFilters();
             }
         }
 
-        // 3. Modal Pilih Variasi & Topping
+        function applyFilters() {
+            const query = (searchInput ? searchInput.value : '').toLowerCase().trim();
+            const activeBtn = document.querySelector('.cat-pill.active');
+            const activeCat = activeBtn ? activeBtn.dataset.cat : 'all';
+
+            document.querySelectorAll('.product-card').forEach(card => {
+                const name = card.dataset.name.toLowerCase();
+                const cat = card.dataset.cat;
+
+                const matchCat = (activeCat === 'all' || activeCat === cat);
+                const matchQuery = (!query || name.includes(query));
+
+                card.style.display = (matchCat && matchQuery) ? 'flex' : 'none';
+            });
+        }
+
+        // 3. Modal Varian Produk
         function openProductModal(productId) {
-            const card = document.querySelector(`.product-card[data-id="${productId}"]`);
-            if (!card) return;
+            let found = null;
+            for (const c of categoriesData) {
+                const p = c.products.find(x => x.id === productId);
+                if (p) { found = p; break; }
+            }
+            if (!found) return;
 
-            const name = card.dataset.name;
-            const imgSrc = card.dataset.image;
-            const variations = JSON.parse(card.dataset.variations || '[]');
+            currentModalProduct = found;
+            document.getElementById('modal-product-name').textContent = found.name;
 
-            currentModalProduct = { id: productId, name, variations };
-            document.getElementById('modal-product-name').textContent = name;
-            document.getElementById('modal-product-img').src = imgSrc;
-
-            const varContainer = document.getElementById('modal-variations-list');
+            const varContainer = document.getElementById('modal-variations-container');
             varContainer.innerHTML = '';
 
-            variations.forEach((v, idx) => {
+            found.variations.forEach((v, idx) => {
                 const isFirst = (idx === 0);
                 if (isFirst) selectedVariation = v;
 
                 const div = document.createElement('div');
-                div.className = `p-3 rounded-2xl border text-center cursor-pointer transition active:scale-95 variation-choice ${isFirst ? 'border-[#0e2a1d] bg-stone-100 text-stone-900 font-bold shadow-2xs' : 'border-stone-200 bg-white text-stone-700'}`;
+                div.className = `p-2.5 rounded-xl border text-center cursor-pointer transition active:scale-95 variation-choice ${isFirst ? 'border-[#1B4332] bg-[#1B4332]/10 text-[#1B4332] font-bold' : 'border-[#EBE6DD] bg-white text-stone-700'}`;
                 div.dataset.id = v.id;
                 div.dataset.price = v.price;
                 div.dataset.name = v.variation_name;
                 div.onclick = () => selectVariation(v);
                 div.innerHTML = `
                     <div class="font-bold text-xs">${v.variation_name}</div>
-                    <div class="text-xs font-mono font-black text-stone-900 mt-0.5">Rp ${v.price.toLocaleString('id-ID')}</div>
+                    <div class="text-xs font-mono font-black mt-0.5">Rp ${v.price.toLocaleString('id-ID')}</div>
                 `;
                 varContainer.appendChild(div);
             });
@@ -830,9 +816,9 @@
             selectedVariation = v;
             document.querySelectorAll('.variation-choice').forEach(el => {
                 if (parseInt(el.dataset.id) === v.id) {
-                    el.className = 'p-3 rounded-2xl border text-center cursor-pointer transition active:scale-95 variation-choice border-[#0e2a1d] bg-stone-100 text-stone-900 font-bold shadow-2xs';
+                    el.className = 'p-2.5 rounded-xl border text-center cursor-pointer transition active:scale-95 variation-choice border-[#1B4332] bg-[#1B4332]/10 text-[#1B4332] font-bold';
                 } else {
-                    el.className = 'p-3 rounded-2xl border text-center cursor-pointer transition active:scale-95 variation-choice border-stone-200 bg-white text-stone-700';
+                    el.className = 'p-2.5 rounded-xl border text-center cursor-pointer transition active:scale-95 variation-choice border-[#EBE6DD] bg-white text-stone-700';
                 }
             });
             recalculateModalPrice();
@@ -902,6 +888,7 @@
             const emptyState = document.getElementById('empty-cart-state');
             const countBadge = document.getElementById('cart-item-count');
             const totalDisplay = document.getElementById('cart-total-display');
+            const subtotalDisplay = document.getElementById('cart-subtotal-display');
             const checkoutBtn = document.getElementById('btn-checkout');
 
             if (cart.length === 0) {
@@ -910,6 +897,7 @@
                 listContainer.innerHTML = '';
                 countBadge.textContent = '0 item';
                 totalDisplay.textContent = 'Rp 0';
+                subtotalDisplay.textContent = 'Rp 0';
                 checkoutBtn.disabled = true;
                 calculateChange();
                 return;
@@ -932,30 +920,29 @@
                 const noteText = `${item.sugar_level}, ${item.ice_level}`;
 
                 const div = document.createElement('div');
-                div.className = 'p-3 rounded-2xl border border-stone-200 bg-white hover:border-stone-300 transition flex items-center justify-between gap-2 shadow-2xs';
+                div.className = 'p-3 rounded-2xl border border-[#EBE6DD] bg-white hover:border-stone-300 transition flex items-center justify-between gap-2 shadow-2xs';
                 div.innerHTML = `
                     <div class="flex-1 min-w-0">
-                        <div class="font-bold text-xs text-stone-900 truncate">
+                        <div class="font-bold text-xs text-[#2D2D2D] truncate">
                             ${item.product_name} <span class="text-stone-500 font-semibold">(${item.variation_name})</span>
                         </div>
-                        <div class="text-[11px] text-stone-400 truncate mt-0.5">
-                            ${toppingText ? `<span class="text-amber-800 font-semibold">${toppingText} &bull; </span>` : ''}
+                        <div class="text-[10px] text-stone-400 truncate mt-0.5">
+                            ${toppingText ? `<span class="text-[#E88A1A] font-semibold">${toppingText} • </span>` : ''}
                             ${noteText}
                         </div>
-                        <div class="text-xs font-mono font-black text-stone-900 mt-1">
+                        <div class="text-xs font-mono font-extrabold text-[#1B4332] mt-1">
                             Rp ${item.subtotal.toLocaleString('id-ID')}
                         </div>
                     </div>
 
-                    <!-- Counter Qty Sentuh Besar -->
                     <div class="flex items-center gap-1.5 shrink-0">
                         <button type="button" onclick="changeQty(${index}, -1)"
-                            class="w-7 h-7 rounded-lg bg-stone-100 hover:bg-stone-200 text-stone-700 font-bold text-xs flex items-center justify-center active:scale-90 cursor-pointer">
+                            class="w-7 h-7 rounded-lg bg-[#F8F6F0] hover:bg-stone-200 text-[#2D2D2D] font-bold text-xs flex items-center justify-center active:scale-90 cursor-pointer">
                             -
                         </button>
-                        <span class="w-6 text-center font-bold text-xs font-mono">${item.quantity}</span>
+                        <span class="w-6 text-center font-bold text-xs font-mono text-[#2D2D2D]">${item.quantity}</span>
                         <button type="button" onclick="changeQty(${index}, 1)"
-                            class="w-7 h-7 rounded-lg bg-[#0e2a1d] hover:bg-[#1a4a34] text-white font-bold text-xs flex items-center justify-center active:scale-90 cursor-pointer">
+                            class="w-7 h-7 rounded-lg bg-[#1B4332] hover:bg-[#143326] text-white font-bold text-xs flex items-center justify-center active:scale-90 cursor-pointer">
                             +
                         </button>
                         <button type="button" onclick="removeItem(${index})" title="Hapus"
@@ -969,6 +956,7 @@
 
             countBadge.textContent = `${totalCups} item`;
             totalDisplay.textContent = 'Rp ' + grandTotal.toLocaleString('id-ID');
+            subtotalDisplay.textContent = 'Rp ' + grandTotal.toLocaleString('id-ID');
             checkoutBtn.disabled = false;
 
             calculateChange();
@@ -1008,17 +996,17 @@
             const checkoutText = document.getElementById('btn-checkout-text');
 
             if (method === 'cash') {
-                btnCash.className = 'py-2.5 px-3 rounded-lg text-xs font-bold flex items-center justify-center gap-2 transition cursor-pointer bg-white text-stone-900 shadow-xs';
-                btnQris.className = 'py-2.5 px-3 rounded-lg text-xs font-semibold flex items-center justify-center gap-2 transition cursor-pointer text-stone-600 hover:text-stone-900';
+                btnCash.className = 'py-2 px-3 rounded-lg text-xs font-bold flex items-center justify-center gap-1.5 transition cursor-pointer bg-white text-[#1B4332] shadow-2xs';
+                btnQris.className = 'py-2 px-3 rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 transition cursor-pointer text-stone-600 hover:text-[#2D2D2D]';
                 calcBox.classList.remove('hidden');
                 qrisBox.classList.add('hidden');
-                checkoutText.textContent = '✓ Konfirmasi Lunas';
+                checkoutText.textContent = 'BAYAR TUNAI';
             } else {
-                btnQris.className = 'py-2.5 px-3 rounded-lg text-xs font-bold flex items-center justify-center gap-2 transition cursor-pointer bg-white text-stone-900 shadow-xs';
-                btnCash.className = 'py-2.5 px-3 rounded-lg text-xs font-semibold flex items-center justify-center gap-2 transition cursor-pointer text-stone-600 hover:text-stone-900';
+                btnQris.className = 'py-2 px-3 rounded-lg text-xs font-bold flex items-center justify-center gap-1.5 transition cursor-pointer bg-white text-[#1B4332] shadow-2xs';
+                btnCash.className = 'py-2 px-3 rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 transition cursor-pointer text-stone-600 hover:text-[#2D2D2D]';
                 calcBox.classList.add('hidden');
                 qrisBox.classList.remove('hidden');
-                checkoutText.textContent = '📱 Buka QRIS Simulasi';
+                checkoutText.textContent = '📱 BUKA QRIS SIMULASI';
             }
 
             calculateChange();
@@ -1037,7 +1025,7 @@
             calculateChange();
         }
 
-        // NUMPAD TOUCHSCREEN INPUT HANDLERS
+        // Keypad Layar Sentuh Handlers
         function numpadInput(digit) {
             const input = document.getElementById('cash-received-input');
             let current = input.value ? String(input.value) : '';
@@ -1087,17 +1075,17 @@
 
             if (diff >= 0) {
                 changeDisplay.textContent = 'Rp ' + diff.toLocaleString('id-ID');
-                changeBox.className = 'px-3 py-2 bg-emerald-50 border border-emerald-300 rounded-xl text-base font-mono font-bold text-emerald-800 flex items-center justify-between';
+                changeBox.className = 'px-2.5 py-1.5 bg-emerald-50 border border-emerald-300 rounded-xl font-mono font-bold text-sm text-emerald-800 flex items-center justify-between';
                 checkoutBtn.disabled = false;
             } else {
                 const lack = Math.abs(diff);
                 changeDisplay.textContent = '- Rp ' + lack.toLocaleString('id-ID');
-                changeBox.className = 'px-3 py-2 bg-rose-50 border border-rose-300 rounded-xl text-base font-mono font-bold text-rose-700 flex items-center justify-between';
+                changeBox.className = 'px-2.5 py-1.5 bg-rose-50 border border-rose-300 rounded-xl font-mono font-bold text-sm text-rose-700 flex items-center justify-between';
                 checkoutBtn.disabled = true;
             }
         }
 
-        // 6. Alur Checkout (Tunai vs QRIS)
+        // 6. Alur Checkout
         function initiateCheckout() {
             if (cart.length === 0) return;
 
@@ -1109,7 +1097,6 @@
                 return;
             }
 
-            // Eksekusi Tunai
             executeCheckout();
         }
 
@@ -1166,11 +1153,11 @@
                 if (!res.ok || !data.success) {
                     alert(data.message || 'Gagal memproses transaksi kasir.');
                     checkoutBtn.disabled = false;
-                    checkoutBtn.textContent = '✓ Konfirmasi Lunas';
+                    checkoutBtn.textContent = 'BAYAR';
                     return;
                 }
 
-                // Tampilkan Modal Sukses & Pratinjau Struk (Ref 15)
+                // Tampilkan Modal Sukses & Pratinjau Struk
                 showReceiptModal(data, [...cart]);
 
                 // Reset keranjang
@@ -1182,11 +1169,11 @@
                 alert('Terjadi kendala jaringan/server saat transaksi.');
                 console.error(err);
             } finally {
-                checkoutBtn.textContent = '✓ Konfirmasi Lunas';
+                checkoutBtn.textContent = (activePaymentMethod === 'cash' ? 'BAYAR TUNAI' : '📱 BUKA QRIS SIMULASI');
             }
         }
 
-        // 7. Modal Sukses & Pratinjau Nota 58mm (Inspirasi Ref 15)
+        // 7. Modal Sukses & Cetak Struk 58mm
         function showReceiptModal(txData, items) {
             document.getElementById('success-lunas-amount').textContent = 'Rp ' + txData.total_amount.toLocaleString('id-ID') + ' Lunas';
             
@@ -1201,15 +1188,25 @@
             document.getElementById('rc-paid').textContent = 'Rp ' + txData.paid_amount.toLocaleString('id-ID');
             document.getElementById('rc-change').textContent = 'Rp ' + txData.change_amount.toLocaleString('id-ID');
 
+            // Set cetak nota
+            document.getElementById('print-rc-invoice').textContent = txData.invoice_number;
+            document.getElementById('print-rc-date').textContent = txData.created_at;
+            document.getElementById('print-rc-total').textContent = 'Rp ' + txData.total_amount.toLocaleString('id-ID');
+            document.getElementById('print-rc-paid').textContent = 'Rp ' + txData.paid_amount.toLocaleString('id-ID');
+            document.getElementById('print-rc-change').textContent = 'Rp ' + txData.change_amount.toLocaleString('id-ID');
+
             const list = document.getElementById('rc-items-list');
+            const printList = document.getElementById('print-rc-items');
             list.innerHTML = '';
+            printList.innerHTML = '';
 
             items.forEach(i => {
                 const topText = i.toppings.length > 0 ? ` +${i.toppings.map(t=>t.name).join(',')}` : '';
+                
                 const itemDiv = document.createElement('div');
                 itemDiv.className = 'space-y-0.5 text-[10px]';
                 itemDiv.innerHTML = `
-                    <div class="flex justify-between">
+                    <div class="flex justify-between font-semibold">
                         <span>${i.product_name} (${i.variation_name})</span>
                         <span>Rp ${i.subtotal.toLocaleString('id-ID')}</span>
                     </div>
@@ -1218,6 +1215,17 @@
                     </div>
                 `;
                 list.appendChild(itemDiv);
+
+                const printDiv = document.createElement('div');
+                printDiv.style.marginBottom = '3px';
+                printDiv.innerHTML = `
+                    <div style="display: flex; justify-content: space-between;">
+                        <span>${i.product_name}</span>
+                        <span>Rp ${i.subtotal.toLocaleString('id-ID')}</span>
+                    </div>
+                    <div style="font-size: 8px; color: #555;">${i.quantity}x @${i.unitPrice.toLocaleString('id-ID')} (${i.variation_name}${topText})</div>
+                `;
+                printList.appendChild(printDiv);
             });
 
             document.getElementById('receipt-modal').classList.remove('hidden');
@@ -1227,7 +1235,7 @@
             document.getElementById('receipt-modal').classList.add('hidden');
         }
 
-        // 8. Riwayat Nota & Pembatalan (Void)
+        // 8. Riwayat Nota & Void
         function openHistoryModal() {
             document.getElementById('history-modal').classList.remove('hidden');
         }
@@ -1266,7 +1274,7 @@
             }
         }
 
-        // 9. Buka & Tutup Shift Kasir
+        // 9. Buka & Tutup Shift
         function openStartShiftModal() {
             document.getElementById('start-shift-modal').classList.remove('hidden');
         }
