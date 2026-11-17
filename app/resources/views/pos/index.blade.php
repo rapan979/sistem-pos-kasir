@@ -442,7 +442,7 @@
     </div>
 
     <!-- ==============================================================
-         5. MODAL QRIS DINAMIS MIDTRANS (AUTO-DETECT & AUTO-PRINT)
+         5. MODAL QRIS DINAMIS (MERCHANT RESMI / MIDTRANS)
          ============================================================== -->
     <div id="qris-modal" class="fixed inset-0 bg-black/40 backdrop-blur-xs z-50 flex items-center justify-center p-4 hidden">
         <div class="bg-white rounded-3xl max-w-sm w-full p-6 border border-[#EBE6DD] shadow-2xl text-center space-y-3.5 animate-in fade-in zoom-in-95 duration-150">
@@ -450,34 +450,33 @@
                 <div class="flex items-center justify-center gap-1.5">
                     <span class="px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-bold uppercase tracking-wider flex items-center gap-1">
                         <span class="w-1.5 h-1.5 rounded-full bg-emerald-600 animate-pulse"></span>
-                        QRIS Dinamis Midtrans
+                        <span id="qris-modal-badge">{{ config('services.qris.mode') === 'midtrans' ? 'QRIS Midtrans' : 'QRIS Resmi Toko' }}</span>
                     </span>
                 </div>
-                <h3 class="text-base font-extrabold text-[#2D2D2D]">Pindai untuk Membayar</h3>
+                <h3 class="text-base font-extrabold text-[#2D2D2D]" id="qris-modal-title">{{ config('services.qris.merchant_name', 'RAKHA RAQILLA SYIHAB') }}</h3>
+                <p class="text-[11px] text-stone-500 font-medium" id="qris-modal-subtitle">NMID: ID1026560144937 · Sidoarjo</p>
             </div>
 
             <!-- Wadah Kode QR Murni -->
             <div class="p-3 bg-white rounded-2xl border-2 border-[#1B4332] flex items-center justify-center shadow-xs mx-auto w-fit min-w-[210px] min-h-[210px] relative">
                 <!-- Indikator Loading -->
-                <div id="qris-loading" class="flex flex-col items-center justify-center gap-2 text-stone-400 py-10">
+                <div id="qris-loading" class="flex flex-col items-center justify-center gap-2 text-stone-400 py-10 hidden">
                     <div class="w-7 h-7 border-3 border-emerald-600 border-t-transparent rounded-full animate-spin"></div>
-                    <span class="text-xs font-semibold">Menghubungi Midtrans...</span>
+                    <span class="text-xs font-semibold">Menyiapkan Kode QR...</span>
                 </div>
                 <!-- Canvas QR Code -->
-                <canvas id="qris-canvas" class="rounded-lg hidden"></canvas>
+                <canvas id="qris-canvas" class="rounded-lg"></canvas>
                 <!-- Image QR Code Fallback -->
-                <img id="qris-image" class="w-[210px] h-[210px] rounded-lg hidden" alt="QRIS Midtrans" />
+                <img id="qris-image" class="w-[210px] h-[210px] rounded-lg hidden" alt="QRIS Toko" />
             </div>
 
             <div class="space-y-0.5">
-                <span class="text-[10px] font-bold text-stone-400 block uppercase tracking-wider">Total Tagihan</span>
+                <span class="text-[10px] font-bold text-stone-400 block uppercase tracking-wider">Total Tagihan (Nominal Pas)</span>
                 <div class="text-2xl font-black font-mono text-[#1B4332]" id="qris-modal-amount">Rp 0</div>
-                <div class="flex items-center justify-center gap-1.5 text-[11px] text-emerald-700 font-semibold pt-0.5">
-                    <span class="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span>
-                    <span>Menunggu Pembayaran (Auto-Detect)...</span>
-                </div>
+                <p class="text-[11px] text-stone-500 pt-0.5" id="qris-instruction-text">Pelanggan dapat scan via BCA, Mandiri, BRI, GoPay, Dana, OVO, ShopeePay</p>
             </div>
 
+            @if (config('services.qris.mode') === 'midtrans' && ! config('services.midtrans.is_production', false))
             <!-- Panel Simulator Sandbox (Uji Coba Cepat Tanpa Uang Asli) -->
             <div class="p-2.5 rounded-xl bg-amber-50/70 border border-amber-200/80 text-left space-y-1.5">
                 <div class="flex items-center justify-between text-[11px]">
@@ -497,15 +496,17 @@
                     <span id="btn-copy-qris-text">Salin Kode QRIS (untuk Simulator)</span>
                 </button>
             </div>
+            @endif
 
-            <div class="grid grid-cols-2 gap-2 pt-1">
-                <button type="button" onclick="closeQrisModal()"
-                    class="py-2.5 rounded-xl border border-[#EBE6DD] text-stone-600 font-bold text-xs hover:bg-[#F8F6F0] transition active:scale-95 cursor-pointer">
-                    Batal
-                </button>
+            <div class="space-y-2 pt-1">
                 <button type="button" onclick="confirmQrisPaymentManual()"
-                    class="py-2.5 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-700 font-bold text-xs transition active:scale-95 cursor-pointer">
-                    Konfirmasi Manual
+                    class="w-full py-3 rounded-xl bg-[#1B4332] hover:bg-[#143326] text-white font-extrabold text-sm shadow-sm transition active:scale-98 cursor-pointer flex items-center justify-center gap-2">
+                    <span>✓</span>
+                    <span>Sudah Dibayar Pelanggan (Cetak Struk)</span>
+                </button>
+                <button type="button" onclick="closeQrisModal()"
+                    class="w-full py-2 rounded-xl border border-[#EBE6DD] text-stone-600 font-bold text-xs hover:bg-[#F8F6F0] transition active:scale-95 cursor-pointer">
+                    Batal
                 </button>
             </div>
         </div>
@@ -1192,10 +1193,86 @@
             }
         }
 
-        // 5b. Logika Integrasi Midtrans QRIS Dinamis (Realtime Auto-Detect & Auto-Print)
+        // 5b. Logika Integrasi QRIS (Merchant Dinamis / Midtrans Gateway)
+        const qrisConfig = {
+            mode: "{{ config('services.qris.mode', 'merchant') }}",
+            merchantName: "{{ config('services.qris.merchant_name', 'RAKHA RAQILLA SYIHAB') }}",
+            baseStaticQris: "{{ config('services.qris.base_string') }}",
+        };
+
         let currentMidtransOrderId = null;
         let currentMidtransQrString = null;
         let qrisPollingInterval = null;
+
+        // CRC16-CCITT calculation for EMVCo QRIS (Polynomial 0x1021, init 0xFFFF)
+        function crc16(str) {
+            let crc = 0xFFFF;
+            for (let c = 0; c < str.length; c++) {
+                crc ^= str.charCodeAt(c) << 8;
+                for (let i = 0; i < 8; i++) {
+                    if ((crc & 0x8000) !== 0) {
+                        crc = ((crc << 1) ^ 0x1021) & 0xFFFF;
+                    } else {
+                        crc = (crc << 1) & 0xFFFF;
+                    }
+                }
+            }
+            let hex = crc.toString(16).toUpperCase();
+            return hex.padStart(4, '0');
+        }
+
+        // Generate Dynamic QRIS EMVCo by inserting Tag 54 (amount) and recalculating CRC16
+        function buildDynamicQrisString(staticQris, amount) {
+            let qris = staticQris.replace("010211", "010212");
+            qris = qris.slice(0, -8);
+            const amountStr = String(amount);
+            const tag54 = "54" + String(amountStr.length).padStart(2, '0') + amountStr;
+            const splitIndex = qris.indexOf("5802ID");
+            if (splitIndex !== -1) {
+                qris = qris.slice(0, splitIndex) + tag54 + qris.slice(splitIndex);
+            }
+            qris += "6304";
+            const newCrc = crc16(qris);
+            return qris + newCrc;
+        }
+
+        function openQrisModal(amount) {
+            if (cart.length === 0) return;
+
+            const modal = document.getElementById('qris-modal');
+            const amountEl = document.getElementById('qris-modal-amount');
+            const loadingEl = document.getElementById('qris-loading');
+            const canvasEl = document.getElementById('qris-canvas');
+            const imgEl = document.getElementById('qris-image');
+
+            amountEl.textContent = 'Rp ' + amount.toLocaleString('id-ID');
+            modal.classList.remove('hidden');
+
+            if (qrisConfig.mode === 'midtrans') {
+                openMidtransQrisModal(amount);
+            } else {
+                // Mode Merchant Toko: Generate QR Dinamis dengan Nominal Pas
+                loadingEl.classList.add('hidden');
+                canvasEl.classList.remove('hidden');
+                if (imgEl) imgEl.classList.add('hidden');
+
+                const dynamicString = buildDynamicQrisString(qrisConfig.baseStaticQris, amount);
+                currentMidtransQrString = dynamicString;
+
+                if (window.QRCode && canvasEl) {
+                    window.QRCode.toCanvas(canvasEl, dynamicString, {
+                        width: 210,
+                        margin: 1,
+                        color: {
+                            dark: '#000000',
+                            light: '#ffffff'
+                        }
+                    }, function (err) {
+                        if (err) console.error('Gagal render QRIS merchant:', err);
+                    });
+                }
+            }
+        }
 
         async function openMidtransQrisModal(amount) {
             if (cart.length === 0) return;
@@ -1403,7 +1480,7 @@
             const grandTotal = cart.reduce((acc, i) => acc + i.subtotal, 0);
 
             if (activePaymentMethod === 'qris') {
-                openMidtransQrisModal(grandTotal);
+                openQrisModal(grandTotal);
                 return;
             }
 
@@ -1464,6 +1541,13 @@
 
                 // Tampilkan Modal Sukses & Pratinjau Struk
                 showReceiptModal(data, [...cart]);
+
+                // Auto-print struk thermal secara otomatis jika QRIS
+                if (!isCash) {
+                    setTimeout(() => {
+                        printReceipt();
+                    }, 500);
+                }
 
                 // Reset keranjang
                 cart = [];

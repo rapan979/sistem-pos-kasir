@@ -450,7 +450,7 @@ class PosController extends Controller
     {
         return Http::withBasicAuth($this->getMidtransServerKey(), '')
             ->withOptions([
-                'verify' => (bool) config('services.midtrans.is_production', false),
+                'verify' => PHP_OS_FAMILY === 'Windows' ? false : true,
             ])
             ->withHeaders([
                 'Accept' => 'application/json',
