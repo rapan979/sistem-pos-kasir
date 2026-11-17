@@ -21,7 +21,9 @@ class UserSeeder extends Seeder
         $inactiveBusiness = Business::where('license_key', 'ETN-2026-NONAKTIF')->firstOrFail();
 
         $geraiPusat = Outlet::where('business_id', $activeBusiness->id)
-            ->where('name', 'Gerai Pusat')
+            ->where(function ($q) {
+                $q->where('name', 'Gerai Pusat')->orWhere('name', 'Gerai Utama');
+            })
             ->firstOrFail();
         $geraiCabang2 = Outlet::where('business_id', $activeBusiness->id)
             ->where('name', 'Gerai Cabang 2')

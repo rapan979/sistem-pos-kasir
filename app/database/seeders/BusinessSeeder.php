@@ -30,7 +30,7 @@ class BusinessSeeder extends Seeder
 
         $activeOutlets = [
             [
-                'name' => 'Gerai Utama',
+                'name' => 'Gerai Pusat',
                 'address' => 'Jl. Merdeka No. 10, Jakarta',
                 'phone' => '081111222333',
                 'receipt_footer' => 'Terima kasih sudah jajan di Es Teh Perkasa!',
