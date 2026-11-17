@@ -331,7 +331,7 @@ class PosController extends Controller
                 'paid_amount' => $transaction->paid_amount,
                 'change_amount' => $transaction->change_amount,
                 'payment_method' => $transaction->payment_method,
-                'created_at' => $transaction->created_at->format('d/m/Y H:i'),
+                'created_at' => $transaction->created_at->timezone('Asia/Jakarta')->format('d/m/Y H:i') . ' WIB',
                 'outlet_name' => $outlet->name,
                 'cashier_name' => $user->name,
             ]);

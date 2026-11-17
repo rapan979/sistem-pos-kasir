@@ -1,4 +1,8 @@
 import './bootstrap';
+import QRCode from 'qrcode';
+
+// Expose QRCode ke global window untuk kasir POS
+window.QRCode = QRCode;
 
 // Registrasi Service Worker untuk Progressive Web App (PWA)
 if ('serviceWorker' in navigator) {

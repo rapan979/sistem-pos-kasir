@@ -291,10 +291,6 @@
                     <span>Subtotal</span>
                     <span id="cart-subtotal-display" class="font-mono font-semibold text-[#2D2D2D]">Rp 0</span>
                 </div>
-                <div class="flex justify-between text-stone-600">
-                    <span>Pajak (0%)</span>
-                    <span class="font-mono font-semibold text-[#2D2D2D]">Rp 0</span>
-                </div>
                 <div class="flex justify-between text-sm sm:text-base font-extrabold text-[#1B4332] pt-1.5 border-t border-[#EBE6DD]">
                     <span>Total Belanja</span>
                     <span id="cart-total-display" class="font-mono text-lg">Rp 0</span>
@@ -439,39 +435,36 @@
     </div>
 
     <!-- ==============================================================
-         5. MODAL QRIS SIMULASI (VERIFIKASI KASIR)
+         5. MODAL QRIS DINAMIS (KODE QR OTOMATIS SESUAI PESANAN)
          ============================================================== -->
     <div id="qris-modal" class="fixed inset-0 bg-black/40 backdrop-blur-xs z-50 flex items-center justify-center p-4 hidden">
         <div class="bg-white rounded-3xl max-w-sm w-full p-6 border border-[#EBE6DD] shadow-2xl text-center space-y-4 animate-in fade-in zoom-in-95 duration-150">
             <div class="space-y-1">
                 <span class="px-2.5 py-1 rounded-full bg-[#1B4332]/10 text-[#1B4332] text-[10px] font-bold uppercase tracking-wider">
-                    QRIS Statis Simulasi
+                    QRIS Pembayaran
                 </span>
                 <h3 class="text-base font-extrabold text-[#2D2D2D]">Pindai untuk Membayar</h3>
             </div>
 
-            <!-- Kode QR Simulasi -->
-            <div class="w-48 h-48 mx-auto p-3 bg-white rounded-2xl border-2 border-[#1B4332] flex items-center justify-center shadow-xs">
-                <div class="space-y-2 text-center">
-                    <div class="w-32 h-32 bg-stone-100 rounded-lg flex items-center justify-center text-xs font-mono font-bold text-stone-400 border border-stone-200">
-                        [ QRIS PERKASA ]
-                    </div>
-                </div>
+            <!-- Wadah Kode QR Murni (Tanpa Nama Toko / Banner) -->
+            <div class="p-3 bg-white rounded-2xl border-2 border-[#1B4332] flex items-center justify-center shadow-xs mx-auto w-fit">
+                <canvas id="qris-canvas" class="rounded-lg"></canvas>
             </div>
 
-            <div>
-                <span class="text-xs text-stone-500">Nominal Tagihan:</span>
-                <div class="text-xl font-extrabold font-mono text-[#1B4332]" id="qris-modal-amount">Rp 0</div>
+            <div class="space-y-0.5">
+                <span class="text-[11px] font-semibold text-stone-400 block uppercase">Total Tagihan</span>
+                <div class="text-2xl font-black font-mono text-[#1B4332]" id="qris-modal-amount">Rp 0</div>
+                <p class="text-[10px] text-stone-500 pt-1">Nominal otomatis muncul di aplikasi pelanggan saat di-scan.</p>
             </div>
 
-            <div class="grid grid-cols-2 gap-2 pt-2">
+            <div class="grid grid-cols-2 gap-2 pt-1">
                 <button type="button" onclick="closeQrisModal()"
                     class="py-2.5 rounded-xl border border-[#EBE6DD] text-stone-600 font-bold text-xs hover:bg-[#F8F6F0] transition active:scale-95 cursor-pointer">
                     Batal
                 </button>
                 <button type="button" onclick="confirmQrisPayment()"
                     class="py-2.5 rounded-xl bg-[#1B4332] hover:bg-[#143326] text-white font-bold text-xs transition active:scale-95 cursor-pointer shadow-xs">
-                    ✓ Verifikasi Lunas
+                    ✓ Konfirmasi Lunas
                 </button>
             </div>
         </div>
@@ -1070,6 +1063,62 @@
             }
         }
 
+        // 5b. Logika QRIS Dinamis Otomatis (EMVCo Tag 54 + CRC16)
+        const baseStaticQris = "00020101021126610014COM.GO-JEK.WWW01189360091437746865670210G7746865670303UMI51440014ID.CO.QRIS.WWW0215ID10265601449370303UMI5204899953033605802ID5925RAKHA RAQILLA SYIHAB, Dig6008SIDOARJO61056125862070703A016304C36F";
+
+        function crc16(str) {
+            let crc = 0xFFFF;
+            for (let c = 0; c < str.length; c++) {
+                crc ^= str.charCodeAt(c) << 8;
+                for (let i = 0; i < 8; i++) {
+                    if ((crc & 0x8000) !== 0) {
+                        crc = ((crc << 1) ^ 0x1021) & 0xFFFF;
+                    } else {
+                        crc = (crc << 1) & 0xFFFF;
+                    }
+                }
+            }
+            let hex = crc.toString(16).toUpperCase();
+            return hex.padStart(4, '0');
+        }
+
+        function buildDynamicQrisString(staticQris, amount) {
+            // 1. Ubah indikator ke dinamis (010211 -> 010212)
+            let qris = staticQris.replace("010211", "010212");
+            // Potong 8 karakter CRC lama: 6304XXXX
+            qris = qris.slice(0, -8);
+
+            // 2. Sisipkan Tag 54 (Nominal) sebelum Tag 58 (5802ID)
+            const amountStr = String(amount);
+            const tag54 = "54" + String(amountStr.length).padStart(2, '0') + amountStr;
+            const splitIndex = qris.indexOf("5802ID");
+            if (splitIndex !== -1) {
+                qris = qris.slice(0, splitIndex) + tag54 + qris.slice(splitIndex);
+            }
+
+            // 3. Tambahkan 6304 dan hitung CRC16 baru
+            qris += "6304";
+            const newCrc = crc16(qris);
+            return qris + newCrc;
+        }
+
+        function renderDynamicQris(amount) {
+            const dynamicString = buildDynamicQrisString(baseStaticQris, amount);
+            const canvas = document.getElementById('qris-canvas');
+            if (window.QRCode && canvas) {
+                window.QRCode.toCanvas(canvas, dynamicString, {
+                    width: 210,
+                    margin: 1,
+                    color: {
+                        dark: '#000000',
+                        light: '#ffffff'
+                    }
+                }, function (err) {
+                    if (err) console.error('Gagal render QRIS dinamis:', err);
+                });
+            }
+        }
+
         // 6. Alur Checkout
         function initiateCheckout() {
             if (cart.length === 0) return;
@@ -1078,6 +1127,7 @@
 
             if (activePaymentMethod === 'qris') {
                 document.getElementById('qris-modal-amount').textContent = 'Rp ' + grandTotal.toLocaleString('id-ID');
+                renderDynamicQris(grandTotal);
                 document.getElementById('qris-modal').classList.remove('hidden');
                 return;
             }
