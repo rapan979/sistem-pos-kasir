@@ -56,13 +56,30 @@ class PosController extends Controller
             ->where('is_available', true)
             ->get();
 
-        // Ambil 5 transaksi terakhir pada shift ini untuk riwayat cepat kasir
+        // Ambil riwayat transaksi pada shift ini lengkap dengan rincian menu yang dipesan
         $recentTransactions = collect();
+        $shiftCashSales = 0;
+        $shiftQrisSales = 0;
+        $expectedCash = 0;
+
         if ($activeShift) {
             $recentTransactions = Transaction::where('cashier_shift_id', $activeShift->id)
+                ->with('details')
                 ->latest()
-                ->take(5)
+                ->take(30)
                 ->get();
+
+            $shiftCashSales = (int) Transaction::where('cashier_shift_id', $activeShift->id)
+                ->whereIn('payment_method', ['tunai', 'cash'])
+                ->whereIn('payment_status', ['lunas', 'paid'])
+                ->sum('total_amount');
+
+            $shiftQrisSales = (int) Transaction::where('cashier_shift_id', $activeShift->id)
+                ->where('payment_method', 'qris')
+                ->whereIn('payment_status', ['lunas', 'paid'])
+                ->sum('total_amount');
+
+            $expectedCash = $activeShift->opening_cash + $shiftCashSales;
         }
 
         return view('pos.index', [
@@ -73,6 +90,54 @@ class PosController extends Controller
             'categories' => $categories,
             'toppings' => $toppings,
             'recentTransactions' => $recentTransactions,
+            'shiftCashSales' => $shiftCashSales,
+            'shiftQrisSales' => $shiftQrisSales,
+            'expectedCash' => $expectedCash,
+        ]);
+    }
+
+    /**
+     * Ringkasan Realtime Shift Kasir (Pendapatan Tunai, QRIS, & Uang Fisik Harusnya).
+     */
+    public function shiftSummary(Request $request): JsonResponse
+    {
+        $user = auth()->user();
+        $outlet = $user->outlet ?? $user->business->outlets()->first();
+
+        $shift = CashierShift::where('outlet_id', $outlet->id)
+            ->where('user_id', $user->id)
+            ->where('status', 'open')
+            ->latest('opened_at')
+            ->first();
+
+        if (! $shift) {
+            return response()->json(['success' => false, 'message' => 'Tidak ada shift kasir yang aktif.'], 404);
+        }
+
+        $cashSales = (int) Transaction::where('cashier_shift_id', $shift->id)
+            ->whereIn('payment_method', ['tunai', 'cash'])
+            ->whereIn('payment_status', ['lunas', 'paid'])
+            ->sum('total_amount');
+
+        $qrisSales = (int) Transaction::where('cashier_shift_id', $shift->id)
+            ->where('payment_method', 'qris')
+            ->whereIn('payment_status', ['lunas', 'paid'])
+            ->sum('total_amount');
+
+        $totalSales = $cashSales + $qrisSales;
+        $expectedCash = $shift->opening_cash + $cashSales;
+        $txCount = Transaction::where('cashier_shift_id', $shift->id)
+            ->whereIn('payment_status', ['lunas', 'paid'])
+            ->count();
+
+        return response()->json([
+            'success' => true,
+            'opening_cash' => $shift->opening_cash,
+            'cash_sales' => $cashSales,
+            'qris_sales' => $qrisSales,
+            'total_sales' => $totalSales,
+            'expected_cash' => $expectedCash,
+            'total_transactions' => $txCount,
         ]);
     }
 

@@ -36,6 +36,7 @@ Route::middleware('auth')->group(function () {
     // Area Layar Kasir POS (Pusat Operasional Utama Kasir & Owner)
     Route::middleware('role:owner,kasir')->group(function () {
         Route::get('/pos', [PosController::class, 'index'])->name('pos.index');
+        Route::get('/pos/shift/summary', [PosController::class, 'shiftSummary'])->name('pos.shift.summary');
         Route::post('/pos/shift/open', [PosController::class, 'openShift'])->name('pos.shift.open');
         Route::post('/pos/shift/close', [PosController::class, 'closeShift'])->name('pos.shift.close');
         Route::post('/pos/checkout', [PosController::class, 'checkout'])->name('pos.checkout');

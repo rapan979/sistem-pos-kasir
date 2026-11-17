@@ -17,28 +17,35 @@
     <style>
         /* Gaya Cetak Nota Thermal 58mm Bersih & Terisolasi */
         @media print {
-            body * {
-                visibility: hidden !important;
+            html, body {
+                background: #fff !important;
+                color: #000 !important;
+                margin: 0 !important;
+                padding: 0 !important;
             }
-            #thermal-receipt-area, #thermal-receipt-area * {
-                visibility: visible !important;
+            body > *:not(#thermal-receipt-area) {
+                display: none !important;
             }
             #thermal-receipt-area {
-                position: fixed !important;
+                display: block !important;
+                position: absolute !important;
                 left: 0 !important;
                 top: 0 !important;
                 width: 58mm !important;
                 margin: 0 !important;
-                padding: 4mm 3mm !important;
+                padding: 3mm 2mm !important;
                 font-family: 'Courier New', Courier, monospace !important;
                 font-size: 11px !important;
-                line-height: 1.25 !important;
+                line-height: 1.3 !important;
                 color: #000 !important;
                 background: #fff !important;
             }
+            #thermal-receipt-area * {
+                visibility: visible !important;
+            }
             @page {
                 size: 58mm auto;
-                margin: 0;
+                margin: 0mm;
             }
         }
     </style>
@@ -71,13 +78,13 @@
                     <span>Menu POS</span>
                 </a>
 
-                <!-- Tombol Riwayat Nota -->
+                <!-- Tombol Riwayat Pesanan -->
                 <button type="button" onclick="openHistoryModal()"
                     class="w-full px-3.5 py-2.5 rounded-xl text-[#2D2D2D] hover:bg-[#F8F6F0] font-semibold text-xs flex items-center gap-3 transition active:scale-95 cursor-pointer">
                     <svg class="w-4 h-4 text-stone-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
                     </svg>
-                    <span>Riwayat Nota</span>
+                    <span>Riwayat Pesanan</span>
                 </button>
 
                 <!-- Status Shift Kasir -->
@@ -515,7 +522,7 @@
 
             <!-- Aksi: Cetak Struk & Pesanan Baru -->
             <div class="grid grid-cols-2 gap-2 pt-1">
-                <button type="button" onclick="window.print()"
+                <button type="button" onclick="printReceipt()"
                     class="py-2.5 rounded-xl border border-[#1B4332] text-[#1B4332] font-bold text-xs hover:bg-emerald-50 transition active:scale-95 cursor-pointer flex items-center justify-center gap-1.5">
                     <span>🖨️</span>
                     <span>Cetak Struk</span>
@@ -529,34 +536,83 @@
     </div>
 
     <!-- ==============================================================
-         7. MODAL RIWAYAT NOTA & VOID
+         7. MODAL RIWAYAT PESANAN & NOTA
          ============================================================== -->
     <div id="history-modal" class="fixed inset-0 bg-black/40 backdrop-blur-xs z-50 flex items-center justify-center p-4 hidden">
-        <div class="bg-white rounded-3xl max-w-lg w-full p-5 border border-[#EBE6DD] shadow-2xl space-y-4">
+        <div class="bg-white rounded-3xl max-w-lg w-full p-5 border border-[#EBE6DD] shadow-2xl space-y-4 animate-in fade-in zoom-in-95 duration-150">
             <div class="flex items-center justify-between pb-3 border-b border-[#EBE6DD]">
                 <div>
-                    <h3 class="font-extrabold text-sm text-[#1B4332]">Riwayat Nota Hari Ini</h3>
-                    <p class="text-[11px] text-stone-500">Daftar transaksi nota shift yang sedang aktif</p>
+                    <h3 class="font-extrabold text-sm text-[#1B4332]">Riwayat Pesanan & Nota (Shift Ini)</h3>
+                    <p class="text-[11px] text-stone-500">Daftar nota transaksi dan rincian menu yang dipesan</p>
                 </div>
                 <button type="button" onclick="closeHistoryModal()" class="w-7 h-7 rounded-full bg-[#F8F6F0] text-stone-400 hover:text-stone-700 flex items-center justify-center text-xs cursor-pointer">
                     ✕
                 </button>
             </div>
 
-            <div class="overflow-y-auto max-h-72 space-y-2">
+            <div class="overflow-y-auto max-h-96 space-y-2.5 pr-0.5">
                 @forelse ($recentTransactions as $tx)
-                    <div class="p-3 rounded-2xl border border-[#EBE6DD] bg-[#F8F6F0]/40 flex items-center justify-between text-xs">
-                        <div>
-                            <div class="font-mono font-bold text-[#1B4332]">{{ $tx->invoice_number }}</div>
-                            <div class="text-[11px] text-stone-500">{{ $tx->created_at->format('H:i') }} WIB • {{ ucfirst($tx->payment_method) }}</div>
-                            <div class="font-mono font-extrabold text-[#2D2D2D] mt-0.5">Rp {{ number_format($tx->total_amount, 0, ',', '.') }}</div>
+                    <div class="p-3.5 rounded-2xl border border-[#EBE6DD] bg-[#F8F6F0]/40 space-y-2 text-xs">
+                        <!-- Baris Atas: Info Nota, Waktu & Badge Metode -->
+                        <div class="flex items-start justify-between">
+                            <div>
+                                <div class="flex items-center gap-2">
+                                    <span class="font-mono font-black text-[#1B4332] text-xs">{{ $tx->invoice_number }}</span>
+                                    <span class="px-2 py-0.5 rounded-full text-[10px] font-bold {{ $tx->payment_method === 'qris' ? 'bg-amber-100 text-amber-800' : 'bg-emerald-100 text-emerald-800' }}">
+                                        {{ ucfirst($tx->payment_method) }}
+                                    </span>
+                                </div>
+                                <div class="text-[10px] text-stone-400 mt-0.5">{{ $tx->created_at->format('d/m/Y H:i') }} WIB</div>
+                            </div>
+                            <div class="text-right">
+                                <div class="font-mono font-black text-sm text-[#2D2D2D]">Rp {{ number_format($tx->total_amount, 0, ',', '.') }}</div>
+                                @if ($tx->payment_status === 'batal' || $tx->payment_status === 'void')
+                                    <span class="inline-block mt-0.5 px-2 py-0.5 rounded-full bg-rose-100 text-rose-700 font-bold text-[10px]">
+                                        Dibatalkan (Void)
+                                    </span>
+                                @else
+                                    <span class="inline-block mt-0.5 px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 font-bold text-[10px]">
+                                        Lunas
+                                    </span>
+                                @endif
+                            </div>
                         </div>
-                        <div>
-                            @if ($tx->payment_status === 'batal' || $tx->payment_status === 'void')
-                                <span class="px-2.5 py-1 rounded-full bg-rose-100 text-rose-700 font-bold text-[10px]">
-                                    Dibatalkan (Void)
-                                </span>
-                            @else
+
+                        <!-- Rincian Menu Minuman yang Dipesan -->
+                        <div class="p-2.5 rounded-xl bg-white border border-[#EBE6DD]/80 space-y-1">
+                            <span class="text-[10px] font-bold text-stone-400 uppercase tracking-wider block">Rincian Minuman Dipesan:</span>
+                            @foreach ($tx->details as $item)
+                                <div class="flex items-center justify-between text-[11px] text-[#2D2D2D]">
+                                    <span class="font-medium">• {{ $item->quantity }}x {{ $item->product_name }} ({{ $item->variation_name }})</span>
+                                    <span class="font-mono font-bold text-stone-700">Rp {{ number_format($item->subtotal, 0, ',', '.') }}</span>
+                                </div>
+                            @endforeach
+                        </div>
+
+                        <!-- Baris Tombol Aksi: Cetak Ulang & Void -->
+                        <div class="flex items-center justify-end gap-2 pt-1">
+                            <button type="button" onclick="reprintTx({{ json_encode([
+                                'invoice_number' => $tx->invoice_number,
+                                'created_at' => $tx->created_at->format('d/m/Y H:i') . ' WIB',
+                                'total_amount' => $tx->total_amount,
+                                'paid_amount' => $tx->paid_amount,
+                                'change_amount' => $tx->change_amount,
+                                'payment_method' => $tx->payment_method,
+                                'items' => $tx->details->map(fn($d) => [
+                                    'product_name' => $d->product_name,
+                                    'variation_name' => $d->variation_name,
+                                    'quantity' => $d->quantity,
+                                    'unitPrice' => $d->price_at_transaction,
+                                    'subtotal' => $d->subtotal,
+                                    'toppings' => [],
+                                ])
+                            ]) }})"
+                                class="px-2.5 py-1.5 rounded-xl border border-stone-300 text-stone-700 hover:bg-white font-bold text-[11px] flex items-center gap-1 transition active:scale-95 cursor-pointer shadow-2xs">
+                                <span>🖨️</span>
+                                <span>Cetak Nota</span>
+                            </button>
+
+                            @if ($tx->payment_status !== 'batal' && $tx->payment_status !== 'void')
                                 <button type="button" onclick="promptVoid({{ $tx->id }}, '{{ $tx->invoice_number }}')"
                                     class="px-2.5 py-1.5 rounded-xl border border-rose-200 text-rose-700 hover:bg-rose-50 font-bold text-[11px] transition active:scale-95 cursor-pointer">
                                     Void Nota
@@ -566,7 +622,7 @@
                     </div>
                 @empty
                     <div class="py-8 text-center text-stone-400 text-xs">
-                        Belum ada transaksi pada shift ini.
+                        Belum ada riwayat pesanan pada shift ini.
                     </div>
                 @endforelse
             </div>
@@ -610,37 +666,76 @@
     </div>
 
     <!-- ==============================================================
-         9. MODAL TUTUP SHIFT & REKONSILIASI KAS
+         9. MODAL TUTUP SHIFT & REKONSILIASI KAS OTOMATIS
          ============================================================== -->
     <div id="close-shift-modal" class="fixed inset-0 bg-black/40 backdrop-blur-xs z-50 flex items-center justify-center p-4 hidden">
-        <div class="bg-white rounded-3xl max-w-sm w-full p-5 border border-[#EBE6DD] shadow-2xl space-y-4">
+        <div class="bg-white rounded-3xl max-w-md w-full p-6 border border-[#EBE6DD] shadow-2xl space-y-4 animate-in fade-in zoom-in-95 duration-150">
             <div class="space-y-1 text-center">
-                <span class="text-2xl">🌙</span>
-                <h3 class="font-extrabold text-base text-[#1B4332]">Tutup Shift & Rekonsiliasi</h3>
-                <p class="text-xs text-stone-500">Hitung total uang fisik tunai di laci kasir saat ini.</p>
+                <div class="w-10 h-10 rounded-2xl bg-amber-50 border border-amber-200 text-amber-800 flex items-center justify-center mx-auto text-lg">
+                    🌙
+                </div>
+                <h3 class="font-extrabold text-base text-[#1B4332]">Tutup Shift & Rekap Pendapatan</h3>
+                <p class="text-xs text-stone-500">Hasil pendapatan shift dihitung otomatis oleh sistem.</p>
             </div>
 
-            <div class="space-y-2">
-                <label class="block text-xs font-bold text-stone-700">Total Uang Fisik Kasir (Rp)</label>
-                <input type="number" id="shift-actual-cash" placeholder="0" min="0"
-                    class="w-full px-3 py-2.5 bg-[#F8F6F0] border border-[#EBE6DD] rounded-xl text-sm font-mono font-bold text-[#2D2D2D] focus:outline-none focus:ring-2 focus:ring-[#1B4332]">
+            <!-- Rekap Pendapatan Otomatis (Tunai & QRIS) -->
+            <div class="p-3.5 rounded-2xl bg-[#F8F6F0] border border-[#EBE6DD] space-y-2 text-xs">
+                <span class="text-[10px] font-bold text-stone-400 uppercase tracking-wider block">Ringkasan Pendapatan Shift Ini:</span>
+                
+                <div class="flex justify-between text-stone-600">
+                    <span>Modal Awal Laci</span>
+                    <span class="font-mono font-bold text-stone-800" id="close-shift-opening">Rp {{ number_format($activeShift->opening_cash ?? 0, 0, ',', '.') }}</span>
+                </div>
+                <div class="flex justify-between text-stone-600">
+                    <span>Penjualan Tunai</span>
+                    <span class="font-mono font-bold text-emerald-800" id="close-shift-cash">+ Rp {{ number_format($shiftCashSales ?? 0, 0, ',', '.') }}</span>
+                </div>
+                <div class="flex justify-between text-stone-600">
+                    <span>Penjualan QRIS</span>
+                    <span class="font-mono font-bold text-amber-800" id="close-shift-qris">+ Rp {{ number_format($shiftQrisSales ?? 0, 0, ',', '.') }}</span>
+                </div>
+                
+                <div class="pt-2 border-t border-[#EBE6DD] flex justify-between items-center text-xs">
+                    <span class="font-bold text-stone-700">Total Omzet Penjualan (Tunai + QRIS)</span>
+                    <span class="font-mono font-black text-sm text-[#1B4332]" id="close-shift-total-sales">Rp {{ number_format(($shiftCashSales ?? 0) + ($shiftQrisSales ?? 0), 0, ',', '.') }}</span>
+                </div>
+
+                <!-- Kartu Kas Fisik Seharusnya -->
+                <div class="p-2.5 rounded-xl bg-emerald-50 border border-emerald-200 flex justify-between items-center text-xs text-emerald-950 font-semibold">
+                    <span>Uang Fisik Seharusnya di Laci:</span>
+                    <span class="font-mono font-black text-sm text-emerald-900" id="close-shift-expected">Rp {{ number_format($expectedCash ?? 0, 0, ',', '.') }}</span>
+                </div>
             </div>
 
-            <div class="grid grid-cols-2 gap-2 pt-2">
+            <!-- Input Uang Fisik Aktual di Laci (Auto Pre-filled) -->
+            <div class="space-y-1.5">
+                <div class="flex justify-between items-center">
+                    <label class="block text-xs font-bold text-stone-700">Total Uang Fisik Kasir (Rp)</label>
+                    <span class="text-[10px] text-emerald-700 font-semibold bg-emerald-100/60 px-2 py-0.5 rounded-full">Otomatis Terisi</span>
+                </div>
+                <input type="number" id="shift-actual-cash" value="{{ $expectedCash ?? 0 }}" min="0" oninput="calculateShiftDiff()"
+                    class="w-full px-3 py-2.5 bg-white border border-[#EBE6DD] rounded-xl text-sm font-mono font-bold text-[#2D2D2D] focus:outline-none focus:ring-2 focus:ring-[#1B4332]">
+                <div id="close-shift-diff-box" class="text-[11px] font-mono text-stone-500 flex justify-between pt-0.5">
+                    <span>Selisih Kas Laci:</span>
+                    <span id="close-shift-diff-text" class="font-bold text-emerald-700">Rp 0 (Cocok)</span>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-2 pt-1">
                 <button type="button" onclick="closeCloseShiftModal()"
-                    class="py-2.5 rounded-xl border border-[#EBE6DD] text-stone-600 font-bold text-xs hover:bg-[#F8F6F0]">
+                    class="py-2.5 rounded-xl border border-[#EBE6DD] text-stone-600 font-bold text-xs hover:bg-[#F8F6F0] transition active:scale-95 cursor-pointer">
                     Batal
                 </button>
                 <button type="button" onclick="submitCloseShift()"
-                    class="py-2.5 rounded-xl bg-rose-700 hover:bg-rose-800 text-white font-bold text-xs shadow-xs">
-                    Tutup Kasir
+                    class="py-2.5 rounded-xl bg-rose-700 hover:bg-rose-800 text-white font-bold text-xs shadow-xs transition active:scale-95 cursor-pointer">
+                    Konfirmasi Tutup Kasir
                 </button>
             </div>
         </div>
     </div>
 
     <!-- ELEMEN ISOLASI CETAK NOTA THERMAL 58MM (@media print) -->
-    <div id="thermal-receipt-area" class="hidden">
+    <div id="thermal-receipt-area" class="hidden print:block">
         <div style="text-align: center; margin-bottom: 6px;">
             <div style="font-size: 13px; font-weight: bold;">ES TEH PERKASA</div>
             <div style="font-size: 9px;">{{ $outlet->address ?? 'Gerai Utama' }}</div>
@@ -1272,7 +1367,37 @@
             document.getElementById('receipt-modal').classList.add('hidden');
         }
 
-        // 8. Riwayat Nota & Void
+        function printReceipt() {
+            window.print();
+        }
+
+        function reprintTx(tx) {
+            document.getElementById('print-rc-invoice').textContent = tx.invoice_number;
+            document.getElementById('print-rc-date').textContent = tx.created_at;
+            document.getElementById('print-rc-total').textContent = 'Rp ' + tx.total_amount.toLocaleString('id-ID');
+            document.getElementById('print-rc-paid').textContent = 'Rp ' + tx.paid_amount.toLocaleString('id-ID');
+            document.getElementById('print-rc-change').textContent = 'Rp ' + tx.change_amount.toLocaleString('id-ID');
+
+            const printList = document.getElementById('print-rc-items');
+            printList.innerHTML = '';
+
+            tx.items.forEach(i => {
+                const printDiv = document.createElement('div');
+                printDiv.style.marginBottom = '3px';
+                printDiv.innerHTML = `
+                    <div style="display: flex; justify-content: space-between;">
+                        <span>${i.product_name}</span>
+                        <span>Rp ${i.subtotal.toLocaleString('id-ID')}</span>
+                    </div>
+                    <div style="font-size: 8px; color: #555;">${i.quantity}x @${i.unitPrice.toLocaleString('id-ID')} (${i.variation_name})</div>
+                `;
+                printList.appendChild(printDiv);
+            });
+
+            window.print();
+        }
+
+        // 8. Riwayat Pesanan & Void
         function openHistoryModal() {
             document.getElementById('history-modal').classList.remove('hidden');
         }
@@ -1311,7 +1436,9 @@
             }
         }
 
-        // 9. Buka & Tutup Shift
+        // 9. Buka & Tutup Shift Otomatis
+        let currentExpectedCash = {{ $expectedCash ?? 0 }};
+
         function openStartShiftModal() {
             document.getElementById('start-shift-modal').classList.remove('hidden');
         }
@@ -1345,8 +1472,42 @@
             }
         }
 
-        function openCloseShiftModal() {
+        async function openCloseShiftModal() {
+            try {
+                const res = await fetch('{{ route("pos.shift.summary") }}', {
+                    headers: { 'Accept': 'application/json' }
+                });
+                const data = await res.json();
+                if (data.success) {
+                    currentExpectedCash = data.expected_cash;
+                    document.getElementById('close-shift-opening').textContent = 'Rp ' + data.opening_cash.toLocaleString('id-ID');
+                    document.getElementById('close-shift-cash').textContent = '+ Rp ' + data.cash_sales.toLocaleString('id-ID');
+                    document.getElementById('close-shift-qris').textContent = '+ Rp ' + data.qris_sales.toLocaleString('id-ID');
+                    document.getElementById('close-shift-total-sales').textContent = 'Rp ' + data.total_sales.toLocaleString('id-ID');
+                    document.getElementById('close-shift-expected').textContent = 'Rp ' + data.expected_cash.toLocaleString('id-ID');
+                    document.getElementById('shift-actual-cash').value = data.expected_cash;
+                    calculateShiftDiff();
+                }
+            } catch (e) {
+                console.error('Gagal mengambil ringkasan shift realtime:', e);
+            }
             document.getElementById('close-shift-modal').classList.remove('hidden');
+        }
+
+        function calculateShiftDiff() {
+            const actual = parseInt(document.getElementById('shift-actual-cash').value || 0);
+            const diff = actual - currentExpectedCash;
+            const diffEl = document.getElementById('close-shift-diff-text');
+            if (diff === 0) {
+                diffEl.textContent = 'Rp 0 (Cocok)';
+                diffEl.className = 'font-bold text-emerald-700';
+            } else if (diff > 0) {
+                diffEl.textContent = '+ Rp ' + diff.toLocaleString('id-ID') + ' (Lebih)';
+                diffEl.className = 'font-bold text-amber-700';
+            } else {
+                diffEl.textContent = '- Rp ' + Math.abs(diff).toLocaleString('id-ID') + ' (Kurang)';
+                diffEl.className = 'font-bold text-rose-700';
+            }
         }
 
         function closeCloseShiftModal() {
