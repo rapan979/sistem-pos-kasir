@@ -13,6 +13,7 @@ use App\Models\TransactionDetailTopping;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Http;
 use Illuminate\View\View;
 
 /**
@@ -431,5 +432,294 @@ class PosController extends Controller
             'success' => true,
             'message' => 'Transaksi berhasil dibatalkan (void).',
         ]);
+    }
+
+    protected function getMidtransBaseUrl(): string
+    {
+        return config('services.midtrans.is_production', false)
+            ? 'https://api.midtrans.com/v2'
+            : 'https://api.sandbox.midtrans.com/v2';
+    }
+
+    protected function getMidtransServerKey(): string
+    {
+        return config('services.midtrans.server_key', env('MIDTRANS_SERVER_KEY', 'SB-Mid-server-vW7qdP51IaneD6x-rRQEW_fV'));
+    }
+
+    /**
+     * Generate QRIS Dinamis via Midtrans Core API.
+     */
+    public function generateMidtransQris(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'items' => ['required', 'array', 'min:1'],
+            'items.*.variation_id' => ['required', 'integer', 'exists:product_variations,id'],
+            'items.*.quantity' => ['required', 'integer', 'min:1'],
+            'items.*.sugar_level' => ['nullable', 'string'],
+            'items.*.ice_level' => ['nullable', 'string'],
+            'items.*.topping_ids' => ['nullable', 'array'],
+            'items.*.topping_ids.*' => ['integer', 'exists:toppings,id'],
+        ]);
+
+        $user = auth()->user();
+        $business = $user->business;
+        $activeShift = CashierShift::where('outlet_id', $user->outlet_id ?? $business->outlets()->first()->id)
+            ->where('user_id', $user->id)
+            ->where('status', 'open')
+            ->latest('opened_at')
+            ->first();
+
+        if (! $activeShift) {
+            return response()->json(['success' => false, 'message' => 'Silakan buka shift kasir terlebih dahulu.'], 422);
+        }
+
+        $calculatedTotal = 0;
+        $itemsData = [];
+
+        foreach ($validated['items'] as $item) {
+            $variation = ProductVariation::with('product')->findOrFail($item['variation_id']);
+            $unitPrice = $variation->price;
+            $toppingSum = 0;
+            $selectedToppings = [];
+
+            if (! empty($item['topping_ids'])) {
+                $toppings = Topping::whereIn('id', $item['topping_ids'])
+                    ->where('business_id', $business->id)
+                    ->get();
+
+                foreach ($toppings as $t) {
+                    $toppingSum += $t->price;
+                    $selectedToppings[] = [
+                        'topping_id' => $t->id,
+                        'name' => $t->name,
+                        'price' => $t->price,
+                        'subtotal' => $t->price * $item['quantity'],
+                    ];
+                }
+            }
+
+            $itemSubtotal = ($unitPrice + $toppingSum) * $item['quantity'];
+            $calculatedTotal += $itemSubtotal;
+
+            $notesArr = [];
+            if (! empty($item['sugar_level'])) $notesArr[] = 'Gula: ' . $item['sugar_level'];
+            if (! empty($item['ice_level'])) $notesArr[] = 'Es: ' . $item['ice_level'];
+
+            $itemsData[] = [
+                'variation_id' => $variation->id,
+                'quantity' => $item['quantity'],
+                'price' => $unitPrice,
+                'subtotal' => $itemSubtotal,
+                'notes' => implode(', ', $notesArr),
+                'toppings' => $selectedToppings,
+                'product_name' => $variation->product->name,
+                'variation_name' => $variation->variation_name,
+            ];
+        }
+
+        $orderId = 'QRIS-' . date('YmdHis') . '-' . rand(100, 999);
+
+        try {
+            $response = Http::withBasicAuth($this->getMidtransServerKey(), '')
+                ->withHeaders([
+                    'Accept' => 'application/json',
+                    'Content-Type' => 'application/json',
+                ])
+                ->post($this->getMidtransBaseUrl() . '/charge', [
+                    'payment_type' => 'qris',
+                    'transaction_details' => [
+                        'order_id' => $orderId,
+                        'gross_amount' => $calculatedTotal,
+                    ],
+                ]);
+
+            if (! $response->successful()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Gagal menghubungi server Midtrans: ' . ($response->json('status_message') ?? $response->body()),
+                ], 500);
+            }
+
+            $data = $response->json();
+            $qrUrl = null;
+            if (isset($data['actions']) && is_array($data['actions'])) {
+                foreach ($data['actions'] as $act) {
+                    if ($act['name'] === 'generate-qr-code') {
+                        $qrUrl = $act['url'];
+                        break;
+                    }
+                }
+            }
+
+            // Simpan detail pesanan di cache sementara (berlaku 30 menit)
+            cache()->put('midtrans_order_' . $orderId, [
+                'itemsData' => $itemsData,
+                'calculatedTotal' => $calculatedTotal,
+                'shift_id' => $activeShift->id,
+                'user_id' => $user->id,
+                'outlet_id' => $user->outlet_id ?? $business->outlets()->first()->id,
+                'business_id' => $business->id,
+            ], now()->addMinutes(30));
+
+            return response()->json([
+                'success' => true,
+                'order_id' => $orderId,
+                'gross_amount' => $calculatedTotal,
+                'qr_url' => $qrUrl,
+                'qr_string' => $data['qr_string'] ?? null,
+                'expiry_time' => $data['expiry_time'] ?? null,
+            ]);
+        } catch (\Throwable $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Terjadi kesalahan saat memproses Midtrans: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
+     * Cek status pembayaran QRIS Midtrans secara realtime.
+     */
+    public function checkMidtransStatus(Request $request, string $orderId): JsonResponse
+    {
+        try {
+            $response = Http::withBasicAuth($this->getMidtransServerKey(), '')
+                ->withHeaders(['Accept' => 'application/json'])
+                ->get($this->getMidtransBaseUrl() . '/' . $orderId . '/status');
+
+            if (! $response->successful()) {
+                return response()->json(['success' => false, 'status' => 'pending'], 200);
+            }
+
+            $data = $response->json();
+            $status = $data['transaction_status'] ?? 'pending';
+
+            // Jika status lunas (settlement)
+            if ($status === 'settlement') {
+                $cached = cache()->get('midtrans_order_' . $orderId);
+
+                // Cek apakah transaksi sudah tersimpan di database
+                $existingTx = Transaction::where('invoice_number', $orderId)->first();
+                if ($existingTx) {
+                    return response()->json([
+                        'success' => true,
+                        'status' => 'settlement',
+                        'transaction' => [
+                            'invoice_number' => $existingTx->invoice_number,
+                            'total_amount' => $existingTx->total_amount,
+                            'paid_amount' => $existingTx->paid_amount,
+                            'change_amount' => $existingTx->change_amount,
+                            'payment_method' => $existingTx->payment_method,
+                            'created_at' => $existingTx->created_at->timezone('Asia/Jakarta')->format('d/m/Y H:i') . ' WIB',
+                            'items' => $existingTx->details->map(fn($d) => [
+                                'product_name' => $d->product_name,
+                                'variation_name' => $d->variation_name,
+                                'quantity' => $d->quantity,
+                                'unitPrice' => $d->price_at_transaction,
+                                'subtotal' => $d->subtotal,
+                                'toppings' => [],
+                            ]),
+                        ],
+                    ]);
+                }
+
+                if (! $cached) {
+                    return response()->json(['success' => false, 'message' => 'Sesi transaksi kedaluwarsa.'], 422);
+                }
+
+                // Simpan transaksi lunas ke DB
+                $user = auth()->user();
+                $tx = DB::transaction(function () use ($orderId, $data, $cached, $user) {
+                    $transaction = Transaction::create([
+                        'invoice_number' => $orderId,
+                        'business_id' => $cached['business_id'],
+                        'outlet_id' => $cached['outlet_id'],
+                        'cashier_shift_id' => $cached['shift_id'],
+                        'user_id' => $user->id,
+                        'total_amount' => (int) $data['gross_amount'],
+                        'paid_amount' => (int) $data['gross_amount'],
+                        'change_amount' => 0,
+                        'payment_method' => 'qris',
+                        'payment_status' => 'lunas',
+                        'paid_at' => now(),
+                    ]);
+
+                    foreach ($cached['itemsData'] as $entry) {
+                        $detail = TransactionDetail::create([
+                            'transaction_id' => $transaction->id,
+                            'product_variation_id' => $entry['variation_id'],
+                            'product_name' => $entry['product_name'],
+                            'variation_name' => $entry['variation_name'],
+                            'quantity' => $entry['quantity'],
+                            'price_at_transaction' => $entry['price'],
+                            'subtotal' => $entry['subtotal'],
+                            'notes' => $entry['notes'],
+                        ]);
+
+                        foreach ($entry['toppings'] as $t) {
+                            TransactionDetailTopping::create([
+                                'transaction_detail_id' => $detail->id,
+                                'topping_id' => $t['topping_id'],
+                                'topping_name' => $t['name'],
+                                'quantity' => $entry['quantity'],
+                                'price_at_transaction' => $t['price'],
+                                'subtotal' => $t['subtotal'],
+                            ]);
+                        }
+                    }
+
+                    return $transaction;
+                });
+
+                cache()->forget('midtrans_order_' . $orderId);
+
+                return response()->json([
+                    'success' => true,
+                    'status' => 'settlement',
+                    'message' => 'Pembayaran QRIS Midtrans Berhasil!',
+                    'transaction' => [
+                        'invoice_number' => $tx->invoice_number,
+                        'total_amount' => $tx->total_amount,
+                        'paid_amount' => $tx->paid_amount,
+                        'change_amount' => 0,
+                        'payment_method' => 'qris',
+                        'created_at' => $tx->created_at->timezone('Asia/Jakarta')->format('d/m/Y H:i') . ' WIB',
+                        'items' => collect($cached['itemsData'])->map(fn($i) => [
+                            'product_name' => $i['product_name'],
+                            'variation_name' => $i['variation_name'],
+                            'quantity' => $i['quantity'],
+                            'unitPrice' => $i['price'],
+                            'subtotal' => $i['subtotal'],
+                            'toppings' => $i['toppings'],
+                        ]),
+                    ],
+                ]);
+            }
+
+            return response()->json([
+                'success' => true,
+                'status' => $status,
+            ]);
+        } catch (\Throwable $e) {
+            return response()->json(['success' => false, 'status' => 'pending'], 200);
+        }
+    }
+
+    /**
+     * Batalkan QRIS Midtrans jika kasir menutup popup.
+     */
+    public function cancelMidtransQris(Request $request, string $orderId): JsonResponse
+    {
+        try {
+            Http::withBasicAuth($this->getMidtransServerKey(), '')
+                ->withHeaders(['Accept' => 'application/json'])
+                ->post($this->getMidtransBaseUrl() . '/' . $orderId . '/cancel');
+
+            cache()->forget('midtrans_order_' . $orderId);
+
+            return response()->json(['success' => true, 'message' => 'QRIS dibatalkan.']);
+        } catch (\Throwable $e) {
+            return response()->json(['success' => true]);
+        }
     }
 }

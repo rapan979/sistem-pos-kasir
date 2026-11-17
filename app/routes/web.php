@@ -41,6 +41,11 @@ Route::middleware('auth')->group(function () {
         Route::post('/pos/shift/close', [PosController::class, 'closeShift'])->name('pos.shift.close');
         Route::post('/pos/checkout', [PosController::class, 'checkout'])->name('pos.checkout');
         Route::post('/pos/transaction/{id}/void', [PosController::class, 'voidTransaction'])->name('pos.void');
+
+        // Integrasi Midtrans QRIS Dinamis Otomatis
+        Route::post('/pos/qris/generate', [PosController::class, 'generateMidtransQris'])->name('pos.qris.generate');
+        Route::get('/pos/qris/status/{orderId}', [PosController::class, 'checkMidtransStatus'])->name('pos.qris.status');
+        Route::post('/pos/qris/cancel/{orderId}', [PosController::class, 'cancelMidtransQris'])->name('pos.qris.cancel');
     });
 
     // Area Khusus Owner (Dashboard Pengelola)

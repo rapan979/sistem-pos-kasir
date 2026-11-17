@@ -442,26 +442,60 @@
     </div>
 
     <!-- ==============================================================
-         5. MODAL QRIS DINAMIS (KODE QR OTOMATIS SESUAI PESANAN)
+         5. MODAL QRIS DINAMIS MIDTRANS (AUTO-DETECT & AUTO-PRINT)
          ============================================================== -->
     <div id="qris-modal" class="fixed inset-0 bg-black/40 backdrop-blur-xs z-50 flex items-center justify-center p-4 hidden">
-        <div class="bg-white rounded-3xl max-w-sm w-full p-6 border border-[#EBE6DD] shadow-2xl text-center space-y-4 animate-in fade-in zoom-in-95 duration-150">
+        <div class="bg-white rounded-3xl max-w-sm w-full p-6 border border-[#EBE6DD] shadow-2xl text-center space-y-3.5 animate-in fade-in zoom-in-95 duration-150">
             <div class="space-y-1">
-                <span class="px-2.5 py-1 rounded-full bg-[#1B4332]/10 text-[#1B4332] text-[10px] font-bold uppercase tracking-wider">
-                    QRIS Pembayaran
-                </span>
+                <div class="flex items-center justify-center gap-1.5">
+                    <span class="px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-bold uppercase tracking-wider flex items-center gap-1">
+                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-600 animate-pulse"></span>
+                        QRIS Dinamis Midtrans
+                    </span>
+                </div>
                 <h3 class="text-base font-extrabold text-[#2D2D2D]">Pindai untuk Membayar</h3>
             </div>
 
-            <!-- Wadah Kode QR Murni (Tanpa Nama Toko / Banner) -->
-            <div class="p-3 bg-white rounded-2xl border-2 border-[#1B4332] flex items-center justify-center shadow-xs mx-auto w-fit">
-                <canvas id="qris-canvas" class="rounded-lg"></canvas>
+            <!-- Wadah Kode QR Murni -->
+            <div class="p-3 bg-white rounded-2xl border-2 border-[#1B4332] flex items-center justify-center shadow-xs mx-auto w-fit min-w-[210px] min-h-[210px] relative">
+                <!-- Indikator Loading -->
+                <div id="qris-loading" class="flex flex-col items-center justify-center gap-2 text-stone-400 py-10">
+                    <div class="w-7 h-7 border-3 border-emerald-600 border-t-transparent rounded-full animate-spin"></div>
+                    <span class="text-xs font-semibold">Menghubungi Midtrans...</span>
+                </div>
+                <!-- Canvas QR Code -->
+                <canvas id="qris-canvas" class="rounded-lg hidden"></canvas>
+                <!-- Image QR Code Fallback -->
+                <img id="qris-image" class="w-[210px] h-[210px] rounded-lg hidden" alt="QRIS Midtrans" />
             </div>
 
             <div class="space-y-0.5">
-                <span class="text-[11px] font-semibold text-stone-400 block uppercase">Total Tagihan</span>
+                <span class="text-[10px] font-bold text-stone-400 block uppercase tracking-wider">Total Tagihan</span>
                 <div class="text-2xl font-black font-mono text-[#1B4332]" id="qris-modal-amount">Rp 0</div>
-                <p class="text-[10px] text-stone-500 pt-1">Nominal otomatis muncul di aplikasi pelanggan saat di-scan.</p>
+                <div class="flex items-center justify-center gap-1.5 text-[11px] text-emerald-700 font-semibold pt-0.5">
+                    <span class="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span>
+                    <span>Menunggu Pembayaran (Auto-Detect)...</span>
+                </div>
+            </div>
+
+            <!-- Panel Simulator Sandbox (Uji Coba Cepat Tanpa Uang Asli) -->
+            <div class="p-2.5 rounded-xl bg-amber-50/70 border border-amber-200/80 text-left space-y-1.5">
+                <div class="flex items-center justify-between text-[11px]">
+                    <span class="font-bold text-amber-900 flex items-center gap-1">
+                        <span>🧪</span>
+                        <span>Mode Uji Coba Sandbox:</span>
+                    </span>
+                    <a href="https://simulator.sandbox.midtrans.com/qris/index" target="_blank" rel="noopener"
+                        class="text-[10px] font-bold text-amber-800 underline hover:text-amber-900 flex items-center gap-0.5">
+                        <span>Buka Simulator</span>
+                        <span>↗</span>
+                    </a>
+                </div>
+                <button type="button" onclick="copyQrisString()" id="btn-copy-qris"
+                    class="w-full py-1 px-2 rounded-lg bg-white border border-amber-300 text-amber-900 font-bold text-[10px] hover:bg-amber-100/50 transition cursor-pointer flex items-center justify-center gap-1">
+                    <span>📋</span>
+                    <span id="btn-copy-qris-text">Salin Kode QRIS (untuk Simulator)</span>
+                </button>
             </div>
 
             <div class="grid grid-cols-2 gap-2 pt-1">
@@ -469,9 +503,9 @@
                     class="py-2.5 rounded-xl border border-[#EBE6DD] text-stone-600 font-bold text-xs hover:bg-[#F8F6F0] transition active:scale-95 cursor-pointer">
                     Batal
                 </button>
-                <button type="button" onclick="confirmQrisPayment()"
-                    class="py-2.5 rounded-xl bg-[#1B4332] hover:bg-[#143326] text-white font-bold text-xs transition active:scale-95 cursor-pointer shadow-xs">
-                    ✓ Konfirmasi Lunas
+                <button type="button" onclick="confirmQrisPaymentManual()"
+                    class="py-2.5 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-700 font-bold text-xs transition active:scale-95 cursor-pointer">
+                    Konfirmasi Manual
                 </button>
             </div>
         </div>
@@ -1073,13 +1107,13 @@
                 btnQris.className = 'py-2 px-3 rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 transition cursor-pointer text-stone-600 hover:text-[#2D2D2D]';
                 calcBox.classList.remove('hidden');
                 qrisBox.classList.add('hidden');
-                checkoutText.textContent = 'BAYAR TUNAI';
+                if (checkoutText) checkoutText.textContent = 'BAYAR TUNAI';
             } else {
                 btnQris.className = 'py-2 px-3 rounded-lg text-xs font-bold flex items-center justify-center gap-1.5 transition cursor-pointer bg-white text-[#1B4332] shadow-2xs';
                 btnCash.className = 'py-2 px-3 rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 transition cursor-pointer text-stone-600 hover:text-[#2D2D2D]';
                 calcBox.classList.add('hidden');
                 qrisBox.classList.remove('hidden');
-                checkoutText.textContent = '📱 BUKA QRIS SIMULASI';
+                if (checkoutText) checkoutText.textContent = '📱 TAMPILKAN QRIS';
             }
 
             calculateChange();
@@ -1158,60 +1192,208 @@
             }
         }
 
-        // 5b. Logika QRIS Dinamis Otomatis (EMVCo Tag 54 + CRC16)
-        const baseStaticQris = "00020101021126610014COM.GO-JEK.WWW01189360091437746865670210G7746865670303UMI51440014ID.CO.QRIS.WWW0215ID10265601449370303UMI5204899953033605802ID5925RAKHA RAQILLA SYIHAB, Dig6008SIDOARJO61056125862070703A016304C36F";
+        // 5b. Logika Integrasi Midtrans QRIS Dinamis (Realtime Auto-Detect & Auto-Print)
+        let currentMidtransOrderId = null;
+        let currentMidtransQrString = null;
+        let qrisPollingInterval = null;
 
-        function crc16(str) {
-            let crc = 0xFFFF;
-            for (let c = 0; c < str.length; c++) {
-                crc ^= str.charCodeAt(c) << 8;
-                for (let i = 0; i < 8; i++) {
-                    if ((crc & 0x8000) !== 0) {
-                        crc = ((crc << 1) ^ 0x1021) & 0xFFFF;
-                    } else {
-                        crc = (crc << 1) & 0xFFFF;
-                    }
-                }
+        async function openMidtransQrisModal(amount) {
+            if (cart.length === 0) return;
+
+            const modal = document.getElementById('qris-modal');
+            const amountEl = document.getElementById('qris-modal-amount');
+            const loadingEl = document.getElementById('qris-loading');
+            const canvasEl = document.getElementById('qris-canvas');
+            const imgEl = document.getElementById('qris-image');
+            const btnCopyText = document.getElementById('btn-copy-qris-text');
+
+            amountEl.textContent = 'Rp ' + amount.toLocaleString('id-ID');
+            loadingEl.classList.remove('hidden');
+            canvasEl.classList.add('hidden');
+            if (imgEl) {
+                imgEl.classList.add('hidden');
+                imgEl.src = '';
             }
-            let hex = crc.toString(16).toUpperCase();
-            return hex.padStart(4, '0');
-        }
+            if (btnCopyText) btnCopyText.textContent = 'Salin Kode QRIS (untuk Simulator)';
+            modal.classList.remove('hidden');
 
-        function buildDynamicQrisString(staticQris, amount) {
-            // 1. Ubah indikator ke dinamis (010211 -> 010212)
-            let qris = staticQris.replace("010211", "010212");
-            // Potong 8 karakter CRC lama: 6304XXXX
-            qris = qris.slice(0, -8);
+            // Hentikan polling sebelumnya jika ada
+            stopQrisPolling();
 
-            // 2. Sisipkan Tag 54 (Nominal) sebelum Tag 58 (5802ID)
-            const amountStr = String(amount);
-            const tag54 = "54" + String(amountStr.length).padStart(2, '0') + amountStr;
-            const splitIndex = qris.indexOf("5802ID");
-            if (splitIndex !== -1) {
-                qris = qris.slice(0, splitIndex) + tag54 + qris.slice(splitIndex);
-            }
+            // Request pembuatan QRIS ke backend Midtrans
+            const payload = {
+                items: cart.map(i => ({
+                    variation_id: i.variation_id,
+                    quantity: i.quantity,
+                    sugar_level: i.sugar_level,
+                    ice_level: i.ice_level,
+                    topping_ids: i.toppings.map(t => t.id)
+                }))
+            };
 
-            // 3. Tambahkan 6304 dan hitung CRC16 baru
-            qris += "6304";
-            const newCrc = crc16(qris);
-            return qris + newCrc;
-        }
-
-        function renderDynamicQris(amount) {
-            const dynamicString = buildDynamicQrisString(baseStaticQris, amount);
-            const canvas = document.getElementById('qris-canvas');
-            if (window.QRCode && canvas) {
-                window.QRCode.toCanvas(canvas, dynamicString, {
-                    width: 210,
-                    margin: 1,
-                    color: {
-                        dark: '#000000',
-                        light: '#ffffff'
-                    }
-                }, function (err) {
-                    if (err) console.error('Gagal render QRIS dinamis:', err);
+            try {
+                const res = await fetch('{{ route("pos.qris.generate") }}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': csrfToken,
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify(payload)
                 });
+
+                const data = await res.json();
+                if (!res.ok || !data.success) {
+                    alert(data.message || 'Gagal membuat tagihan QRIS Midtrans.');
+                    closeQrisModal(false);
+                    return;
+                }
+
+                currentMidtransOrderId = data.order_id;
+                currentMidtransQrString = data.qr_string;
+
+                // Render QR code ke canvas menggunakan qrcode npm bundle
+                if (data.qr_string && window.QRCode) {
+                    window.QRCode.toCanvas(canvasEl, data.qr_string, {
+                        width: 210,
+                        margin: 1,
+                        color: {
+                            dark: '#000000',
+                            light: '#ffffff'
+                        }
+                    }, function (err) {
+                        loadingEl.classList.add('hidden');
+                        if (err) {
+                            console.error('Gagal render QR canvas:', err);
+                            if (data.qr_url && imgEl) {
+                                imgEl.src = data.qr_url;
+                                imgEl.classList.remove('hidden');
+                            }
+                        } else {
+                            canvasEl.classList.remove('hidden');
+                        }
+                    });
+                } else if (data.qr_url && imgEl) {
+                    loadingEl.classList.add('hidden');
+                    imgEl.src = data.qr_url;
+                    imgEl.classList.remove('hidden');
+                } else {
+                    loadingEl.classList.add('hidden');
+                    canvasEl.classList.remove('hidden');
+                }
+
+                // Mulai polling status pembayaran ke Midtrans
+                startQrisPolling(data.order_id);
+
+            } catch (err) {
+                console.error('Gagal memproses QRIS Midtrans:', err);
+                alert('Terjadi kesalahan jaringan saat membuat QRIS.');
+                closeQrisModal(false);
             }
+        }
+
+        function startQrisPolling(orderId) {
+            stopQrisPolling();
+
+            qrisPollingInterval = setInterval(async () => {
+                if (!currentMidtransOrderId || currentMidtransOrderId !== orderId) {
+                    stopQrisPolling();
+                    return;
+                }
+
+                try {
+                    const res = await fetch(`/pos/qris/status/${orderId}`, {
+                        headers: {
+                            'Accept': 'application/json'
+                        }
+                    });
+
+                    if (!res.ok) return;
+
+                    const data = await res.json();
+                    if (data.success && data.status === 'settlement') {
+                        // Pembayaran terdeteksi LUNAS!
+                        stopQrisPolling();
+
+                        // Tutup modal QRIS
+                        closeQrisModal(false);
+
+                        // Ambil rincian transaksi untuk ditampilkan & dicetak
+                        const tx = data.transaction;
+                        const txItems = tx.items || [];
+
+                        // Tampilkan modal struk
+                        showReceiptModal(tx, txItems);
+
+                        // Reset keranjang belanja
+                        cart = [];
+                        const receivedInput = document.getElementById('cash-received-input');
+                        if (receivedInput) receivedInput.value = '';
+                        renderCart();
+
+                        // Auto-print struk thermal secara otomatis
+                        setTimeout(() => {
+                            printReceipt();
+                        }, 600);
+                    }
+                } catch (err) {
+                    console.warn('Gagal cek status QRIS:', err);
+                }
+            }, 2500);
+        }
+
+        function stopQrisPolling() {
+            if (qrisPollingInterval) {
+                clearInterval(qrisPollingInterval);
+                qrisPollingInterval = null;
+            }
+        }
+
+        function closeQrisModal(cancelOnServer = true) {
+            stopQrisPolling();
+            const modal = document.getElementById('qris-modal');
+            if (modal) modal.classList.add('hidden');
+
+            const orderToCancel = currentMidtransOrderId;
+            currentMidtransOrderId = null;
+            currentMidtransQrString = null;
+
+            if (cancelOnServer && orderToCancel) {
+                fetch(`/pos/qris/cancel/${orderToCancel}`, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': csrfToken,
+                        'Accept': 'application/json'
+                    }
+                }).catch(() => {});
+            }
+        }
+
+        function copyQrisString() {
+            if (!currentMidtransQrString) {
+                alert('Kode QRIS belum siap. Mohon tunggu sesaat.');
+                return;
+            }
+
+            navigator.clipboard.writeText(currentMidtransQrString).then(() => {
+                const btnText = document.getElementById('btn-copy-qris-text');
+                if (btnText) {
+                    const originalText = btnText.textContent;
+                    btnText.textContent = '✓ Berhasil Disalin!';
+                    setTimeout(() => {
+                        btnText.textContent = originalText;
+                    }, 2500);
+                }
+            }).catch(err => {
+                console.error('Gagal menyalin:', err);
+                prompt('Salin kode QRIS manual:', currentMidtransQrString);
+            });
+        }
+
+        function confirmQrisPaymentManual() {
+            stopQrisPolling();
+            closeQrisModal(false);
+            executeCheckout();
         }
 
         // 6. Alur Checkout
@@ -1221,21 +1403,10 @@
             const grandTotal = cart.reduce((acc, i) => acc + i.subtotal, 0);
 
             if (activePaymentMethod === 'qris') {
-                document.getElementById('qris-modal-amount').textContent = 'Rp ' + grandTotal.toLocaleString('id-ID');
-                renderDynamicQris(grandTotal);
-                document.getElementById('qris-modal').classList.remove('hidden');
+                openMidtransQrisModal(grandTotal);
                 return;
             }
 
-            executeCheckout();
-        }
-
-        function closeQrisModal() {
-            document.getElementById('qris-modal').classList.add('hidden');
-        }
-
-        function confirmQrisPayment() {
-            closeQrisModal();
             executeCheckout();
         }
 
@@ -1253,8 +1424,9 @@
             }
 
             const checkoutBtn = document.getElementById('btn-checkout');
+            const checkoutText = document.getElementById('btn-checkout-text');
             checkoutBtn.disabled = true;
-            checkoutBtn.textContent = 'Menyimpan Transaksi...';
+            if (checkoutText) checkoutText.textContent = 'Menyimpan Transaksi...';
 
             const payload = {
                 items: cart.map(i => ({
@@ -1284,7 +1456,9 @@
                 if (!res.ok || !data.success) {
                     alert(data.message || 'Gagal memproses transaksi kasir.');
                     checkoutBtn.disabled = false;
-                    checkoutBtn.textContent = isCash ? 'BAYAR TUNAI' : '📱 BUKA QRIS SIMULASI';
+                    if (checkoutText) {
+                        checkoutText.textContent = isCash ? 'BAYAR TUNAI' : '📱 TAMPILKAN QRIS';
+                    }
                     return;
                 }
 
@@ -1300,7 +1474,9 @@
                 alert('Terjadi kendala jaringan/server saat transaksi.');
                 console.error(err);
             } finally {
-                checkoutBtn.textContent = ((activePaymentMethod === 'tunai' || activePaymentMethod === 'cash') ? 'BAYAR TUNAI' : '📱 BUKA QRIS SIMULASI');
+                if (checkoutText) {
+                    checkoutText.textContent = ((activePaymentMethod === 'tunai' || activePaymentMethod === 'cash') ? 'BAYAR TUNAI' : '📱 TAMPILKAN QRIS');
+                }
             }
         }
 
