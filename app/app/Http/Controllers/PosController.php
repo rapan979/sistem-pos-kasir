@@ -446,6 +446,17 @@ class PosController extends Controller
         return config('services.midtrans.server_key', env('MIDTRANS_SERVER_KEY', 'SB-Mid-server-vW7qdP51IaneD6x-rRQEW_fV'));
     }
 
+    protected function midtransClient(): \Illuminate\Http\Client\PendingRequest
+    {
+        return Http::withBasicAuth($this->getMidtransServerKey(), '')
+            ->withOptions([
+                'verify' => (bool) config('services.midtrans.is_production', false),
+            ])
+            ->withHeaders([
+                'Accept' => 'application/json',
+            ]);
+    }
+
     /**
      * Generate QRIS Dinamis via Midtrans Core API.
      */
@@ -520,11 +531,8 @@ class PosController extends Controller
         $orderId = 'QRIS-' . date('YmdHis') . '-' . rand(100, 999);
 
         try {
-            $response = Http::withBasicAuth($this->getMidtransServerKey(), '')
-                ->withHeaders([
-                    'Accept' => 'application/json',
-                    'Content-Type' => 'application/json',
-                ])
+            $response = $this->midtransClient()
+                ->withHeaders(['Content-Type' => 'application/json'])
                 ->post($this->getMidtransBaseUrl() . '/charge', [
                     'payment_type' => 'qris',
                     'transaction_details' => [
@@ -583,8 +591,7 @@ class PosController extends Controller
     public function checkMidtransStatus(Request $request, string $orderId): JsonResponse
     {
         try {
-            $response = Http::withBasicAuth($this->getMidtransServerKey(), '')
-                ->withHeaders(['Accept' => 'application/json'])
+            $response = $this->midtransClient()
                 ->get($this->getMidtransBaseUrl() . '/' . $orderId . '/status');
 
             if (! $response->successful()) {
@@ -711,8 +718,7 @@ class PosController extends Controller
     public function cancelMidtransQris(Request $request, string $orderId): JsonResponse
     {
         try {
-            Http::withBasicAuth($this->getMidtransServerKey(), '')
-                ->withHeaders(['Accept' => 'application/json'])
+            $this->midtransClient()
                 ->post($this->getMidtransBaseUrl() . '/' . $orderId . '/cancel');
 
             cache()->forget('midtrans_order_' . $orderId);
