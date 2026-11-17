@@ -303,7 +303,7 @@
 
             <!-- Pilihan Metode Bayar (Tunai vs QRIS) -->
             <div class="grid grid-cols-2 gap-2 p-1 bg-[#F8F6F0] rounded-xl border border-[#EBE6DD]">
-                <button type="button" id="btn-pay-cash" onclick="selectPaymentMethod('cash')"
+                <button type="button" id="btn-pay-cash" onclick="selectPaymentMethod('tunai')"
                     class="py-2 px-3 rounded-lg text-xs font-bold flex items-center justify-center gap-1.5 transition cursor-pointer bg-white text-[#1B4332] shadow-2xs">
                     <span>💵</span>
                     <span>Tunai</span>
@@ -311,7 +311,7 @@
                 <button type="button" id="btn-pay-qris" onclick="selectPaymentMethod('qris')"
                     class="py-2 px-3 rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 transition cursor-pointer text-stone-600 hover:text-[#2D2D2D]">
                     <span>📱</span>
-                    <span>QRIS Statis</span>
+                    <span>QRIS</span>
                 </button>
             </div>
 
@@ -559,7 +559,7 @@
                             <div class="font-mono font-extrabold text-[#2D2D2D] mt-0.5">Rp {{ number_format($tx->total_amount, 0, ',', '.') }}</div>
                         </div>
                         <div>
-                            @if ($tx->status === 'void')
+                            @if ($tx->payment_status === 'batal' || $tx->payment_status === 'void')
                                 <span class="px-2.5 py-1 rounded-full bg-rose-100 text-rose-700 font-bold text-[10px]">
                                     Dibatalkan (Void)
                                 </span>
@@ -688,7 +688,7 @@
         
         let categoriesData = @json($categories);
         let cart = [];
-        let activePaymentMethod = 'cash';
+        let activePaymentMethod = 'tunai';
         let currentModalProduct = null;
         let selectedVariation = null;
 
@@ -973,14 +973,14 @@
 
         // 5. Metode Bayar & Kalkulator Tunai
         function selectPaymentMethod(method) {
-            activePaymentMethod = method;
+            activePaymentMethod = (method === 'cash' || method === 'tunai') ? 'tunai' : 'qris';
             const btnCash = document.getElementById('btn-pay-cash');
             const btnQris = document.getElementById('btn-pay-qris');
             const calcBox = document.getElementById('cash-calculator-box');
             const qrisBox = document.getElementById('qris-info-box');
             const checkoutText = document.getElementById('btn-checkout-text');
 
-            if (method === 'cash') {
+            if (activePaymentMethod === 'tunai') {
                 btnCash.className = 'py-2 px-3 rounded-lg text-xs font-bold flex items-center justify-center gap-1.5 transition cursor-pointer bg-white text-[#1B4332] shadow-2xs';
                 btnQris.className = 'py-2 px-3 rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 transition cursor-pointer text-stone-600 hover:text-[#2D2D2D]';
                 calcBox.classList.remove('hidden');
@@ -1097,11 +1097,12 @@
         async function executeCheckout() {
             const grandTotal = cart.reduce((acc, i) => acc + i.subtotal, 0);
             const receivedInput = document.getElementById('cash-received-input');
-            const paidAmount = (activePaymentMethod === 'cash')
+            const isCash = (activePaymentMethod === 'tunai' || activePaymentMethod === 'cash');
+            const paidAmount = isCash
                 ? parseInt(receivedInput.value || 0)
                 : grandTotal;
 
-            if (activePaymentMethod === 'cash' && paidAmount < grandTotal) {
+            if (isCash && paidAmount < grandTotal) {
                 alert('Uang pembayaran kurang dari total belanja.');
                 return;
             }
@@ -1118,7 +1119,7 @@
                     ice_level: i.ice_level,
                     topping_ids: i.toppings.map(t => t.id)
                 })),
-                payment_method: activePaymentMethod,
+                payment_method: isCash ? 'tunai' : 'qris',
                 paid_amount: paidAmount
             };
 
@@ -1138,7 +1139,7 @@
                 if (!res.ok || !data.success) {
                     alert(data.message || 'Gagal memproses transaksi kasir.');
                     checkoutBtn.disabled = false;
-                    checkoutBtn.textContent = 'BAYAR';
+                    checkoutBtn.textContent = isCash ? 'BAYAR TUNAI' : '📱 BUKA QRIS SIMULASI';
                     return;
                 }
 
@@ -1154,7 +1155,7 @@
                 alert('Terjadi kendala jaringan/server saat transaksi.');
                 console.error(err);
             } finally {
-                checkoutBtn.textContent = (activePaymentMethod === 'cash' ? 'BAYAR TUNAI' : '📱 BUKA QRIS SIMULASI');
+                checkoutBtn.textContent = ((activePaymentMethod === 'tunai' || activePaymentMethod === 'cash') ? 'BAYAR TUNAI' : '📱 BUKA QRIS SIMULASI');
             }
         }
 
@@ -1162,7 +1163,8 @@
         function showReceiptModal(txData, items) {
             document.getElementById('success-lunas-amount').textContent = 'Rp ' + txData.total_amount.toLocaleString('id-ID') + ' Lunas';
             
-            const methodLabel = txData.payment_method === 'cash' ? 'Tunai' : 'QRIS';
+            const isCash = (txData.payment_method === 'tunai' || txData.payment_method === 'cash');
+            const methodLabel = isCash ? 'Tunai' : 'QRIS';
             document.getElementById('success-breakdown-text').textContent = 
                 `${methodLabel} Rp ${txData.paid_amount.toLocaleString('id-ID')} • Kembalian Rp ${txData.change_amount.toLocaleString('id-ID')}`;
 

@@ -149,8 +149,8 @@ class PosController extends Controller
 
         // Hitung total uang tunai yang masuk dari transaksi shift ini
         $totalCashSales = Transaction::where('cashier_shift_id', $shift->id)
-            ->where('payment_method', 'cash')
-            ->where('payment_status', 'paid')
+            ->whereIn('payment_method', ['tunai', 'cash'])
+            ->whereIn('payment_status', ['lunas', 'paid'])
             ->sum('total_amount');
 
         $expectedCash = $shift->opening_cash + $totalCashSales;
@@ -192,7 +192,7 @@ class PosController extends Controller
             'items.*.ice_level' => ['nullable', 'string'],
             'items.*.topping_ids' => ['nullable', 'array'],
             'items.*.topping_ids.*' => ['integer', 'exists:toppings,id'],
-            'payment_method' => ['required', 'string', 'in:cash,qris'],
+            'payment_method' => ['required', 'string', 'in:tunai,qris,cash'],
             'paid_amount' => ['required', 'integer', 'min:0'],
         ]);
 
@@ -261,8 +261,11 @@ class PosController extends Controller
 
             $paidAmount = $validated['paid_amount'];
 
+            $isCash = in_array(strtolower($validated['payment_method']), ['cash', 'tunai']);
+            $dbPaymentMethod = $isCash ? 'tunai' : 'qris';
+
             // Validasi uang bayar jika tunai
-            if ($validated['payment_method'] === 'cash' && $paidAmount < $calculatedTotal) {
+            if ($isCash && $paidAmount < $calculatedTotal) {
                 return response()->json([
                     'success' => false,
                     'message' => 'Nominal uang yang diterima kurang dari total belanja.',
@@ -276,7 +279,7 @@ class PosController extends Controller
                 ->count() + 1;
             $invoiceNumber = 'INV-' . $datePrefix . '-' . str_pad($countToday, 4, '0', STR_PAD_LEFT);
 
-            $changeAmount = ($validated['payment_method'] === 'cash')
+            $changeAmount = $isCash
                 ? max(0, $paidAmount - $calculatedTotal)
                 : 0;
 
@@ -288,10 +291,10 @@ class PosController extends Controller
                 'cashier_shift_id' => $activeShift->id,
                 'user_id' => $user->id,
                 'total_amount' => $calculatedTotal,
-                'paid_amount' => ($validated['payment_method'] === 'cash') ? $paidAmount : $calculatedTotal,
+                'paid_amount' => $isCash ? $paidAmount : $calculatedTotal,
                 'change_amount' => $changeAmount,
-                'payment_method' => $validated['payment_method'],
-                'payment_status' => 'paid',
+                'payment_method' => $dbPaymentMethod,
+                'payment_status' => 'lunas',
                 'paid_at' => now(),
             ]);
 
@@ -348,12 +351,12 @@ class PosController extends Controller
         $transaction = Transaction::where('business_id', $user->business_id)
             ->findOrFail($id);
 
-        if ($transaction->payment_status === 'void') {
+        if (in_array($transaction->payment_status, ['batal', 'void'])) {
             return response()->json(['success' => false, 'message' => 'Transaksi ini sudah pernah dibatalkan.'], 422);
         }
 
         $transaction->update([
-            'payment_status' => 'void',
+            'payment_status' => 'batal',
             'voided_by' => $user->id,
             'void_reason' => $validated['reason'],
             'voided_at' => now(),
