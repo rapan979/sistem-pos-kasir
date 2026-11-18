@@ -398,6 +398,7 @@ class PosController extends Controller
             return response()->json([
                 'success' => true,
                 'message' => 'Transaksi berhasil diselesaikan.',
+                'transaction_id' => $transaction->id,
                 'invoice_number' => $transaction->invoice_number,
                 'total_amount' => $transaction->total_amount,
                 'paid_amount' => $transaction->paid_amount,
@@ -406,6 +407,7 @@ class PosController extends Controller
                 'created_at' => $transaction->created_at->timezone('Asia/Jakarta')->format('d/m/Y H:i') . ' WIB',
                 'outlet_name' => $outlet->name,
                 'cashier_name' => $user->name,
+                'cashier_shift_id' => $activeShift->id,
             ]);
         });
     }
@@ -618,12 +620,15 @@ class PosController extends Controller
                         'success' => true,
                         'status' => 'settlement',
                         'transaction' => [
+                            'transaction_id' => $existingTx->id,
+                            'cashier_shift_id' => $existingTx->cashier_shift_id,
                             'invoice_number' => $existingTx->invoice_number,
                             'total_amount' => $existingTx->total_amount,
                             'paid_amount' => $existingTx->paid_amount,
                             'change_amount' => $existingTx->change_amount,
                             'payment_method' => $existingTx->payment_method,
                             'created_at' => $existingTx->created_at->timezone('Asia/Jakarta')->format('d/m/Y H:i') . ' WIB',
+                            'cashier_name' => $user->name,
                             'items' => $existingTx->details->map(fn($d) => [
                                 'product_name' => $d->product_name,
                                 'variation_name' => $d->variation_name,
@@ -691,12 +696,15 @@ class PosController extends Controller
                     'status' => 'settlement',
                     'message' => 'Pembayaran QRIS Midtrans Berhasil!',
                     'transaction' => [
+                        'transaction_id' => $tx->id,
+                        'cashier_shift_id' => $tx->cashier_shift_id,
                         'invoice_number' => $tx->invoice_number,
                         'total_amount' => $tx->total_amount,
                         'paid_amount' => $tx->paid_amount,
                         'change_amount' => 0,
                         'payment_method' => 'qris',
                         'created_at' => $tx->created_at->timezone('Asia/Jakarta')->format('d/m/Y H:i') . ' WIB',
+                        'cashier_name' => $user->name,
                         'items' => collect($cached['itemsData'])->map(fn($i) => [
                             'product_name' => $i['product_name'],
                             'variation_name' => $i['variation_name'],

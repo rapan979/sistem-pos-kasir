@@ -143,13 +143,32 @@
                     <span>Menu POS</span>
                 </a>
 
-                <!-- Tombol Riwayat Pesanan -->
-                <button type="button" onclick="openHistoryModal()"
-                    class="w-full px-3.5 py-2.5 rounded-xl text-[#2D2D2D] hover:bg-[#F8F6F0] font-semibold text-xs flex items-center gap-3 transition active:scale-95 cursor-pointer">
-                    <svg class="w-4 h-4 text-stone-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
-                    </svg>
-                    <span>Riwayat Pesanan (7 Hari)</span>
+                <!-- Tombol Riwayat Pesanan 7 Hari -->
+                <button type="button" onclick="openHistoryModal('all')"
+                    class="w-full px-3.5 py-2.5 rounded-xl text-[#2D2D2D] hover:bg-[#F8F6F0] font-semibold text-xs flex items-center justify-between transition active:scale-95 cursor-pointer">
+                    <div class="flex items-center gap-3">
+                        <svg class="w-4 h-4 text-stone-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+                        </svg>
+                        <span>Riwayat (7 Hari)</span>
+                    </div>
+                    <span class="text-[10px] font-mono text-stone-400">7 Hari</span>
+                </button>
+
+                <!-- Tombol Riwayat Khusus Shift Ini -->
+                <button type="button" onclick="openHistoryModal('shift')"
+                    class="w-full px-3.5 py-2.5 rounded-xl text-[#2D2D2D] hover:bg-[#F8F6F0] font-semibold text-xs flex items-center justify-between transition active:scale-95 cursor-pointer">
+                    <div class="flex items-center gap-3">
+                        <svg class="w-4 h-4 text-emerald-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <span>Riwayat Shift Ini</span>
+                    </div>
+                    @if ($activeShift)
+                        <span class="text-[10px] font-mono font-bold px-1.5 py-0.5 rounded-md bg-emerald-100 text-emerald-800">#{{ $activeShift->id }}</span>
+                    @else
+                        <span class="text-[9px] text-stone-400">Tutup</span>
+                    @endif
                 </button>
 
                 <!-- Status Shift Kasir & Tombol Tutup Shift -->
@@ -615,7 +634,7 @@
             <div class="p-3 bg-[#F8F6F0] rounded-2xl border border-[#EBE6DD] font-mono text-[11px] space-y-2 text-[#2D2D2D] max-h-56 overflow-y-auto">
                 <div class="text-center border-b border-[#EBE6DD] pb-2 space-y-0.5">
                     <div class="font-extrabold text-xs text-[#1B4332]">ES TEH PERKASA</div>
-                    <div class="text-[9px] text-stone-500">{{ $outlet->address ?? 'Gerai Es Teh Perkasa' }}</div>
+                    <div class="text-[9px] text-stone-500">{{ !empty($outlet->address) ? $outlet->address : 'Jln. KedungRejo, Wedoroklurak, Candi, Sidoarjo' }}</div>
                     <div class="text-[9px] text-stone-400">Nota: <span id="rc-invoice">-</span> • <span id="rc-date">-</span></div>
                 </div>
 
@@ -636,6 +655,12 @@
                         <span>Kembalian</span>
                         <span id="rc-change">Rp 0</span>
                     </div>
+                </div>
+
+                <!-- Footer Struk -->
+                <div class="text-center pt-2 text-[10px] text-stone-500 border-t border-[#EBE6DD] mt-2 space-y-0.5">
+                    <div>Terima Kasih</div>
+                    <div class="font-bold text-[#1B4332]">Es Teh Perkasa</div>
                 </div>
             </div>
 
@@ -664,13 +689,35 @@
             <!-- Header Modal & Tombol Close -->
             <div class="flex items-center justify-between pb-3 border-b border-[#EBE6DD]">
                 <div>
-                    <h3 class="font-extrabold text-sm sm:text-base text-[#1B4332]">Riwayat Pesanan (7 Hari Terakhir)</h3>
-                    <p class="text-[11px] text-stone-500">Daftar transaksi dan nota kasir 7 hari terakhir</p>
+                    <h3 class="font-extrabold text-sm sm:text-base text-[#1B4332]" id="history-modal-title">Riwayat Pesanan & Nota</h3>
+                    <p class="text-[11px] text-stone-500" id="history-modal-desc">Daftar transaksi kasir 7 hari terakhir (semua shift)</p>
                 </div>
                 <button type="button" onclick="closeHistoryModal()" class="w-7 h-7 rounded-full bg-[#F8F6F0] text-stone-400 hover:text-stone-700 flex items-center justify-center cursor-pointer">
                     <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                     </svg>
+                </button>
+            </div>
+
+            <!-- Tab Filter Scope: 7 Hari Terakhir & Khusus Shift Ini -->
+            @php
+                $shiftTxCount = $recentTransactions->filter(function($tx) use ($activeShift) {
+                    return $activeShift && (int)$tx->cashier_shift_id === (int)$activeShift->id;
+                })->count();
+                $allTxCount = $recentTransactions->count();
+            @endphp
+            <div class="flex items-center gap-1.5 p-1 bg-[#F8F6F0] rounded-xl border border-[#EBE6DD]">
+                <button type="button" onclick="setHistoryScope('all')" id="tab-hist-all"
+                    class="tab-hist-btn flex-1 py-2 px-3 rounded-xl text-xs font-bold text-center transition cursor-pointer bg-white text-[#1B4332] shadow-2xs flex items-center justify-center gap-1.5">
+                    <span>7 Hari Terakhir</span>
+                    <span id="badge-count-all" class="px-1.5 py-0.5 rounded-full text-[10px] bg-stone-100 text-stone-600 font-mono">{{ $allTxCount }}</span>
+                </button>
+                <button type="button" onclick="setHistoryScope('shift')" id="tab-hist-shift"
+                    class="tab-hist-btn flex-1 py-2 px-3 rounded-xl text-xs font-semibold text-center transition cursor-pointer text-stone-600 hover:text-[#2D2D2D] bg-transparent flex items-center justify-center gap-1.5">
+                    <span>Khusus Shift Ini</span>
+                    @if ($activeShift)
+                        <span id="badge-count-shift" class="px-1.5 py-0.5 rounded-full text-[10px] bg-emerald-100 text-emerald-800 font-mono font-bold">{{ $shiftTxCount }}</span>
+                    @endif
                 </button>
             </div>
 
@@ -682,14 +729,19 @@
                     </svg>
                 </span>
                 <input type="text" id="history-search-input" oninput="searchHistory()" placeholder="Cari No. Nota atau nama minuman..."
-                    class="w-full pl-9 pr-3 py-2 bg-[#F8F6F0]/60 border border-[#EBE6DD] rounded-xl text-xs text-[#2D2D2D] placeholder-stone-400 focus:bg-white focus:outline-none focus:ring-1 focus:ring-[#1B4332]">
+                    class="w-full pl-9 pr-8 py-2 bg-[#F8F6F0]/60 border border-[#EBE6DD] rounded-xl text-xs text-[#2D2D2D] placeholder-stone-400 focus:bg-white focus:outline-none focus:ring-1 focus:ring-[#1B4332]">
+                <button type="button" id="btn-clear-history-search" onclick="clearHistorySearch()" class="hidden absolute inset-y-0 right-0 pr-2.5 flex items-center text-stone-400 hover:text-stone-600 cursor-pointer">
+                    <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
             </div>
 
             <!-- List Kartu Riwayat Nota Transaksi -->
-            <div class="overflow-y-auto max-h-[360px] space-y-2.5 pr-0.5" id="history-items-container">
+            <div class="overflow-y-auto max-h-[380px] space-y-2.5 pr-0.5" id="history-items-container">
                 @forelse ($recentTransactions as $tx)
                     @php
-                        $isCurrentShift = ($activeShift && $tx->cashier_shift_id === $activeShift->id);
+                        $isCurrentShift = ($activeShift && (int)$tx->cashier_shift_id === (int)$activeShift->id);
                         $isToday = $tx->created_at->isToday();
                         $searchPayload = strtolower($tx->invoice_number . ' ' . $tx->payment_method . ' ' . $tx->details->pluck('product_name')->join(' '));
                     @endphp
@@ -747,6 +799,7 @@
                                 'paid_amount' => $tx->paid_amount,
                                 'change_amount' => $tx->change_amount,
                                 'payment_method' => $tx->payment_method,
+                                'cashier_name' => $tx->user->name ?? 'Kasir',
                                 'items' => $tx->details->map(fn($d) => [
                                     'product_name' => $d->product_name,
                                     'variation_name' => $d->variation_name,
@@ -772,13 +825,37 @@
                         </div>
                     </div>
                 @empty
-                    <div id="history-empty-initial" class="py-8 text-center text-stone-400 text-xs">
-                        Belum ada riwayat transaksi pada 7 hari terakhir.
-                    </div>
                 @endforelse
 
-                <div id="history-empty-filter" class="py-8 text-center text-stone-400 text-xs hidden">
-                    Tidak ditemukan nota yang sesuai pencarian.
+                <!-- Pesan Empty State yang Sesuai -->
+                <div id="history-empty-all" class="py-10 text-center text-stone-400 text-xs hidden space-y-1">
+                    <svg class="w-8 h-8 mx-auto text-stone-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                    </svg>
+                    <p class="font-medium text-stone-500">Belum ada riwayat transaksi pada 7 hari terakhir.</p>
+                </div>
+
+                <div id="history-empty-shift" class="py-10 text-center text-stone-400 text-xs hidden space-y-1">
+                    <svg class="w-8 h-8 mx-auto text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <p class="font-medium text-stone-600">Belum ada transaksi pada shift ini @if ($activeShift)(#{{ $activeShift->id }})@endif.</p>
+                    <p class="text-[10px] text-stone-400">Transaksi baru yang diselesaikan di kasir akan muncul di sini.</p>
+                </div>
+
+                <div id="history-empty-noshift" class="py-10 text-center text-stone-400 text-xs hidden space-y-1">
+                    <svg class="w-8 h-8 mx-auto text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                    </svg>
+                    <p class="font-medium text-stone-600">Shift kasir belum dibuka.</p>
+                    <p class="text-[10px] text-stone-400">Silakan buka shift kasir terlebih dahulu untuk mencatat transaksi shift aktif.</p>
+                </div>
+
+                <div id="history-empty-filter" class="py-10 text-center text-stone-400 text-xs hidden space-y-1">
+                    <svg class="w-8 h-8 mx-auto text-stone-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                    </svg>
+                    <p class="font-medium text-stone-500">Tidak ditemukan nota yang sesuai pencarian.</p>
                 </div>
             </div>
         </div>
@@ -899,13 +976,13 @@
     <div id="thermal-receipt-area" class="hidden print:block">
         <div style="text-align: center; margin-bottom: 6px;">
             <div style="font-size: 13px; font-weight: bold;">ES TEH PERKASA</div>
-            <div style="font-size: 9px;">{{ $outlet->address ?? 'Gerai Utama' }}</div>
+            <div style="font-size: 9px;">{{ !empty($outlet->address) ? $outlet->address : 'Jln. KedungRejo, Wedoroklurak, Candi, Sidoarjo' }}</div>
             <div style="font-size: 9px; margin-top: 3px;">--------------------------------</div>
         </div>
         <div style="font-size: 9px; margin-bottom: 5px;">
             <div>Nota   : <span id="print-rc-invoice">-</span></div>
             <div>Waktu  : <span id="print-rc-date">-</span></div>
-            <div>Kasir  : {{ $user->name }}</div>
+            <div>Kasir  : <span id="print-rc-cashier">{{ $user->name }}</span></div>
             <div>--------------------------------</div>
         </div>
         <div id="print-rc-items" style="font-size: 9px; margin-bottom: 5px;"></div>
@@ -924,7 +1001,7 @@
             </div>
             <div style="text-align: center; margin-top: 8px; font-size: 9px;">
                 <div>Terima Kasih</div>
-                <div>Es Teh Perkasa - Rasa Otentik</div>
+                <div>Es Teh Perkasa</div>
             </div>
         </div>
     </div>
@@ -1541,6 +1618,9 @@
                         // Tampilkan modal struk
                         showReceiptModal(tx, txItems);
 
+                        // Tambahkan juga ke daftar riwayat pesanan (shift aktif & 7 hari)
+                        prependHistoryCard(tx, txItems);
+
                         // Reset keranjang belanja
                         cart = [];
                         const receivedInput = document.getElementById('cash-received-input');
@@ -1725,9 +1805,13 @@
             // Set cetak nota
             document.getElementById('print-rc-invoice').textContent = txData.invoice_number;
             document.getElementById('print-rc-date').textContent = txData.created_at;
-            document.getElementById('print-rc-total').textContent = 'Rp ' + txData.total_amount.toLocaleString('id-ID');
-            document.getElementById('print-rc-paid').textContent = 'Rp ' + txData.paid_amount.toLocaleString('id-ID');
-            document.getElementById('print-rc-change').textContent = 'Rp ' + txData.change_amount.toLocaleString('id-ID');
+            document.getElementById('print-rc-total').textContent = 'Rp ' + Number(txData.total_amount).toLocaleString('id-ID');
+            document.getElementById('print-rc-paid').textContent = 'Rp ' + Number(txData.paid_amount).toLocaleString('id-ID');
+            document.getElementById('print-rc-change').textContent = 'Rp ' + Number(txData.change_amount).toLocaleString('id-ID');
+            const cashierElem = document.getElementById('print-rc-cashier');
+            if (cashierElem && txData.cashier_name) {
+                cashierElem.textContent = txData.cashier_name;
+            }
 
             const list = document.getElementById('rc-items-list');
             const printList = document.getElementById('print-rc-items');
@@ -1776,9 +1860,13 @@
         function reprintTx(tx) {
             document.getElementById('print-rc-invoice').textContent = tx.invoice_number;
             document.getElementById('print-rc-date').textContent = tx.created_at;
-            document.getElementById('print-rc-total').textContent = 'Rp ' + tx.total_amount.toLocaleString('id-ID');
-            document.getElementById('print-rc-paid').textContent = 'Rp ' + tx.paid_amount.toLocaleString('id-ID');
-            document.getElementById('print-rc-change').textContent = 'Rp ' + tx.change_amount.toLocaleString('id-ID');
+            document.getElementById('print-rc-total').textContent = 'Rp ' + Number(tx.total_amount).toLocaleString('id-ID');
+            document.getElementById('print-rc-paid').textContent = 'Rp ' + Number(tx.paid_amount).toLocaleString('id-ID');
+            document.getElementById('print-rc-change').textContent = 'Rp ' + Number(tx.change_amount).toLocaleString('id-ID');
+            const cashierElem = document.getElementById('print-rc-cashier');
+            if (cashierElem && tx.cashier_name) {
+                cashierElem.textContent = tx.cashier_name;
+            }
 
             const printList = document.getElementById('print-rc-items');
             printList.innerHTML = '';
@@ -1789,9 +1877,9 @@
                 printDiv.innerHTML = `
                     <div style="display: flex; justify-content: space-between;">
                         <span>${i.product_name}</span>
-                        <span>Rp ${i.subtotal.toLocaleString('id-ID')}</span>
+                        <span>Rp ${Number(i.subtotal).toLocaleString('id-ID')}</span>
                     </div>
-                    <div style="font-size: 8px; color: #555;">${i.quantity}x @${i.unitPrice.toLocaleString('id-ID')} (${i.variation_name})</div>
+                    <div style="font-size: 8px; color: #555;">${i.quantity}x @${Number(i.unitPrice).toLocaleString('id-ID')} (${i.variation_name})</div>
                 `;
                 printList.appendChild(printDiv);
             });
@@ -1800,12 +1888,129 @@
         }
 
         // 8. Riwayat Pesanan & Void
-        function openHistoryModal() {
+        let currentHistoryScope = 'all';
+
+        function openHistoryModal(scope = 'all') {
+            setHistoryScope(scope);
             document.getElementById('history-modal').classList.remove('hidden');
         }
 
         function closeHistoryModal() {
             document.getElementById('history-modal').classList.add('hidden');
+        }
+
+        function setHistoryScope(scope) {
+            currentHistoryScope = scope;
+            const tabAll = document.getElementById('tab-hist-all');
+            const tabShift = document.getElementById('tab-hist-shift');
+            const desc = document.getElementById('history-modal-desc');
+
+            if (scope === 'shift') {
+                if (tabShift) {
+                    tabShift.className = 'tab-hist-btn flex-1 py-2 px-3 rounded-xl text-xs font-bold text-center transition cursor-pointer bg-white text-[#1B4332] shadow-2xs flex items-center justify-center gap-1.5';
+                }
+                if (tabAll) {
+                    tabAll.className = 'tab-hist-btn flex-1 py-2 px-3 rounded-xl text-xs font-semibold text-center transition cursor-pointer text-stone-600 hover:text-[#2D2D2D] bg-transparent flex items-center justify-center gap-1.5';
+                }
+                if (desc) {
+                    @if ($activeShift)
+                        desc.textContent = 'Daftar transaksi kasir khusus shift aktif saat ini (#{{ $activeShift->id }})';
+                    @else
+                        desc.textContent = 'Shift kasir saat ini belum dibuka';
+                    @endif
+                }
+            } else {
+                if (tabAll) {
+                    tabAll.className = 'tab-hist-btn flex-1 py-2 px-3 rounded-xl text-xs font-bold text-center transition cursor-pointer bg-white text-[#1B4332] shadow-2xs flex items-center justify-center gap-1.5';
+                }
+                if (tabShift) {
+                    tabShift.className = 'tab-hist-btn flex-1 py-2 px-3 rounded-xl text-xs font-semibold text-center transition cursor-pointer text-stone-600 hover:text-[#2D2D2D] bg-transparent flex items-center justify-center gap-1.5';
+                }
+                if (desc) {
+                    desc.textContent = 'Daftar transaksi kasir 7 hari terakhir (semua shift)';
+                }
+            }
+
+            applyHistoryFilters();
+        }
+
+        function clearHistorySearch() {
+            const input = document.getElementById('history-search-input');
+            const clearBtn = document.getElementById('btn-clear-history-search');
+            if (input) {
+                input.value = '';
+                input.focus();
+            }
+            if (clearBtn) clearBtn.classList.add('hidden');
+            applyHistoryFilters();
+        }
+
+        function searchHistory() {
+            applyHistoryFilters();
+        }
+
+        function applyHistoryFilters() {
+            const searchInput = document.getElementById('history-search-input');
+            const clearBtn = document.getElementById('btn-clear-history-search');
+            const query = (searchInput ? searchInput.value : '').toLowerCase().trim();
+
+            if (clearBtn) {
+                clearBtn.classList.toggle('hidden', query.length === 0);
+            }
+
+            const cards = document.querySelectorAll('.history-tx-card');
+            let visibleCount = 0;
+            let totalInScope = 0;
+            const hasActiveShift = {{ $activeShift ? 'true' : 'false' }};
+
+            cards.forEach(card => {
+                const isCurrentShift = (card.dataset.currentShift === '1');
+                const inScope = (currentHistoryScope === 'all') || (currentHistoryScope === 'shift' && isCurrentShift);
+
+                if (inScope) {
+                    totalInScope++;
+                    let match = true;
+                    if (query.length > 0) {
+                        const searchData = card.dataset.search || '';
+                        match = searchData.includes(query);
+                    }
+
+                    if (match) {
+                        card.classList.remove('hidden');
+                        visibleCount++;
+                    } else {
+                        card.classList.add('hidden');
+                    }
+                } else {
+                    card.classList.add('hidden');
+                }
+            });
+
+            const emptyFilter = document.getElementById('history-empty-filter');
+            const emptyShift = document.getElementById('history-empty-shift');
+            const emptyAll = document.getElementById('history-empty-all');
+            const emptyNoShift = document.getElementById('history-empty-noshift');
+
+            if (emptyFilter) emptyFilter.classList.add('hidden');
+            if (emptyShift) emptyShift.classList.add('hidden');
+            if (emptyAll) emptyAll.classList.add('hidden');
+            if (emptyNoShift) emptyNoShift.classList.add('hidden');
+
+            if (currentHistoryScope === 'shift') {
+                if (!hasActiveShift) {
+                    if (emptyNoShift) emptyNoShift.classList.remove('hidden');
+                } else if (totalInScope === 0) {
+                    if (emptyShift) emptyShift.classList.remove('hidden');
+                } else if (visibleCount === 0 && query.length > 0) {
+                    if (emptyFilter) emptyFilter.classList.remove('hidden');
+                }
+            } else {
+                if (cards.length === 0 || totalInScope === 0) {
+                    if (emptyAll) emptyAll.classList.remove('hidden');
+                } else if (visibleCount === 0 && query.length > 0) {
+                    if (emptyFilter) emptyFilter.classList.remove('hidden');
+                }
+            }
         }
 
         async function promptVoid(txId, invoiceNumber) {
@@ -2019,6 +2224,16 @@
             const card = document.createElement('div');
             card.className = 'history-tx-card p-3.5 rounded-2xl border border-[#EBE6DD] bg-[#F8F6F0]/40 space-y-2 text-xs transition animate-in fade-in slide-in-from-top-2 duration-200';
             card.dataset.search = searchPayload;
+            card.dataset.currentShift = '1';
+
+            const badgeAll = document.getElementById('badge-count-all');
+            if (badgeAll) {
+                badgeAll.textContent = (parseInt(badgeAll.textContent || '0') + 1);
+            }
+            const badgeShift = document.getElementById('badge-count-shift');
+            if (badgeShift) {
+                badgeShift.textContent = (parseInt(badgeShift.textContent || '0') + 1);
+            }
 
             const itemsHtml = items.map(item => `
                 <div class="flex items-center justify-between text-[11px] text-[#2D2D2D]">
@@ -2034,6 +2249,7 @@
                 paid_amount: txData.paid_amount,
                 change_amount: txData.change_amount,
                 payment_method: txData.payment_method,
+                cashier_name: txData.cashier_name || 'Kasir',
                 items: items.map(d => ({
                     product_name: d.product_name,
                     variation_name: d.variation_name || 'Regular',
@@ -2084,7 +2300,7 @@
                         <span>Cetak Nota</span>
                     </button>
 
-                    <button type="button" onclick="promptVoid(${txData.transaction_id}, '${escapeHtml(txData.invoice_number)}')"
+                    <button type="button" onclick="promptVoid(${txData.transaction_id || 0}, '${escapeHtml(txData.invoice_number)}')"
                         class="px-2.5 py-1.5 rounded-xl border border-rose-200 text-rose-700 hover:bg-rose-50 font-bold text-[11px] transition active:scale-95 cursor-pointer">
                         Void Nota
                     </button>
@@ -2092,33 +2308,7 @@
             `;
 
             container.prepend(card);
-        }
-
-        function searchHistory() {
-            const searchInput = document.getElementById('history-search-input');
-            const query = (searchInput ? searchInput.value : '').toLowerCase().trim();
-            const cards = document.querySelectorAll('.history-tx-card');
-            let visibleCount = 0;
-
-            cards.forEach(card => {
-                let match = true;
-                if (query.length > 0) {
-                    const searchData = card.dataset.search || '';
-                    match = searchData.includes(query);
-                }
-
-                if (match) {
-                    card.classList.remove('hidden');
-                    visibleCount++;
-                } else {
-                    card.classList.add('hidden');
-                }
-            });
-
-            const emptyNotice = document.getElementById('history-empty-filter');
-            if (emptyNotice) {
-                emptyNotice.classList.toggle('hidden', visibleCount > 0 || cards.length === 0);
-            }
+            applyHistoryFilters();
         }
     </script>
 </body>

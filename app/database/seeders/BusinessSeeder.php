@@ -20,7 +20,7 @@ class BusinessSeeder extends Seeder
                 'name' => 'Es Teh Perkasa',
                 'owner_name' => 'Owner Es Teh',
                 'phone' => '081111222333',
-                'address' => 'Jl. Merdeka No. 10, Jakarta',
+                'address' => 'Jln. KedungRejo, Wedoroklurak, Candi, Sidoarjo',
                 'plan_name' => 'Bulanan',
                 'license_status' => 'active',
                 'license_expires_at' => now()->addDays(30),
@@ -31,7 +31,7 @@ class BusinessSeeder extends Seeder
         $activeOutlets = [
             [
                 'name' => 'Gerai Pusat',
-                'address' => 'Jl. Merdeka No. 10, Jakarta',
+                'address' => 'Jln. KedungRejo, Wedoroklurak, Candi, Sidoarjo',
                 'phone' => '081111222333',
                 'receipt_footer' => 'Terima kasih sudah jajan di Es Teh Perkasa!',
                 'is_active' => true,
