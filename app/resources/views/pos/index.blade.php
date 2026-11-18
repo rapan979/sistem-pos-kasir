@@ -107,7 +107,7 @@
                         <button type="button" onclick="openStartShiftModal()"
                             class="w-full p-2.5 rounded-xl bg-[#E88A1A]/10 hover:bg-[#E88A1A]/20 border border-[#E88A1A]/30 text-left transition active:scale-95 cursor-pointer">
                             <div class="flex items-center gap-1.5 text-[10px] font-bold text-[#E88A1A] uppercase tracking-wider">
-                                <span>⚠️</span>
+                                <span class="w-1.5 h-1.5 rounded-full bg-[#E88A1A] animate-pulse"></span>
                                 Kasir Belum Buka
                             </div>
                             <div class="text-xs font-bold text-[#1B4332] mt-0.5 underline">
@@ -170,7 +170,9 @@
                 <input type="text" id="menu-search" placeholder="Cari Menu..."
                     class="w-full pl-10 pr-8 py-2.5 bg-white border border-[#EBE6DD] rounded-xl text-xs sm:text-sm text-[#2D2D2D] placeholder-stone-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#1B4332] focus:border-[#1B4332] shadow-[0_2px_8px_rgba(27,67,50,0.03)] transition">
                 <button type="button" id="clear-search" onclick="clearSearch()" class="hidden absolute inset-y-0 right-0 pr-3 flex items-center text-stone-400 hover:text-stone-700">
-                    ✕
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
                 </button>
             </div>
 
@@ -308,12 +310,16 @@
             <div class="grid grid-cols-2 gap-2 p-1 bg-[#F8F6F0] rounded-xl border border-[#EBE6DD]">
                 <button type="button" id="btn-pay-cash" onclick="selectPaymentMethod('tunai')"
                     class="py-2 px-3 rounded-lg text-xs font-bold flex items-center justify-center gap-1.5 transition cursor-pointer bg-white text-[#1B4332] shadow-2xs">
-                    <span>💵</span>
+                    <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
+                    </svg>
                     <span>Tunai</span>
                 </button>
                 <button type="button" id="btn-pay-qris" onclick="selectPaymentMethod('qris')"
                     class="py-2 px-3 rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 transition cursor-pointer text-stone-600 hover:text-[#2D2D2D]">
-                    <span>📱</span>
+                    <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z" />
+                    </svg>
                     <span>QRIS</span>
                 </button>
             </div>
@@ -396,8 +402,10 @@
         <div class="bg-white rounded-3xl max-w-sm w-full p-5 border border-[#EBE6DD] shadow-2xl space-y-4 animate-in fade-in zoom-in-95 duration-150">
             <div class="flex items-center justify-between pb-3 border-b border-[#EBE6DD]">
                 <h3 class="font-extrabold text-sm text-[#1B4332]" id="modal-product-name">Varian Minuman</h3>
-                <button type="button" onclick="closeProductModal()" class="w-7 h-7 rounded-full bg-[#F8F6F0] text-stone-400 hover:text-stone-700 flex items-center justify-center text-xs cursor-pointer">
-                    ✕
+                <button type="button" onclick="closeProductModal()" class="w-7 h-7 rounded-full bg-[#F8F6F0] text-stone-400 hover:text-stone-700 flex items-center justify-center cursor-pointer">
+                    <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
                 </button>
             </div>
 
@@ -448,13 +456,13 @@
         <div class="bg-white rounded-3xl max-w-sm w-full p-6 border border-[#EBE6DD] shadow-2xl text-center space-y-3.5 animate-in fade-in zoom-in-95 duration-150">
             <div class="space-y-1">
                 <div class="flex items-center justify-center gap-1.5">
-                    <span class="px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-bold uppercase tracking-wider flex items-center gap-1">
-                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-600 animate-pulse"></span>
-                        <span id="qris-modal-badge">{{ config('services.qris.mode') === 'midtrans' ? 'QRIS Midtrans' : 'QRIS Resmi Toko' }}</span>
+                    <span class="px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-800 text-[10px] font-bold uppercase tracking-wider flex items-center gap-1">
+                        <span class="w-1.5 h-1.5 rounded-full bg-amber-600 animate-pulse"></span>
+                        <span id="qris-modal-badge">QRIS Sementara (Simulasi)</span>
                     </span>
                 </div>
-                <h3 class="text-base font-extrabold text-[#2D2D2D]" id="qris-modal-title">{{ config('services.qris.merchant_name', 'RAKHA RAQILLA SYIHAB') }}</h3>
-                <p class="text-[11px] text-stone-500 font-medium" id="qris-modal-subtitle">NMID: ID1026560144937 · Sidoarjo</p>
+                <h3 class="text-base font-extrabold text-[#2D2D2D]" id="qris-modal-title">Es Teh Perkasa</h3>
+                <p class="text-[11px] text-stone-500 font-medium" id="qris-modal-subtitle">Gerai Pusat · QRIS Dinamis Otomatis</p>
             </div>
 
             <!-- Wadah Kode QR Murni -->
@@ -476,23 +484,28 @@
                 <p class="text-[11px] text-stone-500 pt-0.5" id="qris-instruction-text">Pelanggan dapat scan via BCA, Mandiri, BRI, GoPay, Dana, OVO, ShopeePay</p>
             </div>
 
+            <!-- Pemberitahuan QRIS Sementara / Simulasi -->
+            <div class="p-2.5 rounded-xl bg-amber-50/80 border border-amber-200 text-left">
+                <p class="text-[11px] text-amber-900 leading-relaxed font-medium">
+                    <span class="font-bold">Simulasi:</span> Kode QR ini merupakan QRIS sementara untuk keperluan simulasi transaksi kasir.
+                </p>
+            </div>
+
             @if (config('services.qris.mode') === 'midtrans' && ! config('services.midtrans.is_production', false))
             <!-- Panel Simulator Sandbox (Uji Coba Cepat Tanpa Uang Asli) -->
             <div class="p-2.5 rounded-xl bg-amber-50/70 border border-amber-200/80 text-left space-y-1.5">
                 <div class="flex items-center justify-between text-[11px]">
-                    <span class="font-bold text-amber-900 flex items-center gap-1">
-                        <span>🧪</span>
-                        <span>Mode Uji Coba Sandbox:</span>
+                    <span class="font-bold text-amber-900">
+                        Mode Uji Coba Sandbox:
                     </span>
                     <a href="https://simulator.sandbox.midtrans.com/qris/index" target="_blank" rel="noopener"
                         class="text-[10px] font-bold text-amber-800 underline hover:text-amber-900 flex items-center gap-0.5">
                         <span>Buka Simulator</span>
-                        <span>↗</span>
+                        <span>&rarr;</span>
                     </a>
                 </div>
                 <button type="button" onclick="copyQrisString()" id="btn-copy-qris"
                     class="w-full py-1 px-2 rounded-lg bg-white border border-amber-300 text-amber-900 font-bold text-[10px] hover:bg-amber-100/50 transition cursor-pointer flex items-center justify-center gap-1">
-                    <span>📋</span>
                     <span id="btn-copy-qris-text">Salin Kode QRIS (untuk Simulator)</span>
                 </button>
             </div>
@@ -501,8 +514,10 @@
             <div class="space-y-2 pt-1">
                 <button type="button" onclick="confirmQrisPaymentManual()"
                     class="w-full py-3 rounded-xl bg-[#1B4332] hover:bg-[#143326] text-white font-extrabold text-sm shadow-sm transition active:scale-98 cursor-pointer flex items-center justify-center gap-2">
-                    <span>✓</span>
-                    <span>Sudah Dibayar Pelanggan (Cetak Struk)</span>
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                    </svg>
+                    <span>Konfirmasi Pembayaran (Cetak Struk)</span>
                 </button>
                 <button type="button" onclick="closeQrisModal()"
                     class="w-full py-2 rounded-xl border border-[#EBE6DD] text-stone-600 font-bold text-xs hover:bg-[#F8F6F0] transition active:scale-95 cursor-pointer">
@@ -519,8 +534,10 @@
         <div class="bg-white rounded-3xl max-w-sm w-full p-5 border border-[#EBE6DD] shadow-2xl space-y-4 animate-in fade-in zoom-in-95 duration-150">
             <!-- Icon & Status Berhasil -->
             <div class="text-center space-y-1">
-                <div class="w-12 h-12 mx-auto rounded-full bg-emerald-50 text-emerald-700 flex items-center justify-center text-xl font-bold border border-emerald-200">
-                    ✓
+                <div class="w-12 h-12 mx-auto rounded-full bg-emerald-50 text-emerald-700 flex items-center justify-center border border-emerald-200">
+                    <svg class="w-6 h-6 text-emerald-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" />
+                    </svg>
                 </div>
                 <h3 class="text-base font-extrabold text-[#1B4332]">Transaksi Berhasil!</h3>
                 <p class="text-xs font-mono font-bold text-emerald-800" id="success-lunas-amount">Rp 0 Lunas</p>
@@ -559,7 +576,9 @@
             <div class="grid grid-cols-2 gap-2 pt-1">
                 <button type="button" onclick="printReceipt()"
                     class="py-2.5 rounded-xl border border-[#1B4332] text-[#1B4332] font-bold text-xs hover:bg-emerald-50 transition active:scale-95 cursor-pointer flex items-center justify-center gap-1.5">
-                    <span>🖨️</span>
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+                    </svg>
                     <span>Cetak Struk</span>
                 </button>
                 <button type="button" onclick="closeReceiptModal()"
@@ -580,8 +599,10 @@
                     <h3 class="font-extrabold text-sm text-[#1B4332]">Riwayat Pesanan & Nota (Shift Ini)</h3>
                     <p class="text-[11px] text-stone-500">Daftar nota transaksi dan rincian menu yang dipesan</p>
                 </div>
-                <button type="button" onclick="closeHistoryModal()" class="w-7 h-7 rounded-full bg-[#F8F6F0] text-stone-400 hover:text-stone-700 flex items-center justify-center text-xs cursor-pointer">
-                    ✕
+                <button type="button" onclick="closeHistoryModal()" class="w-7 h-7 rounded-full bg-[#F8F6F0] text-stone-400 hover:text-stone-700 flex items-center justify-center cursor-pointer">
+                    <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
                 </button>
             </div>
 
@@ -642,8 +663,10 @@
                                     'toppings' => [],
                                 ])
                             ]) }})"
-                                class="px-2.5 py-1.5 rounded-xl border border-stone-300 text-stone-700 hover:bg-white font-bold text-[11px] flex items-center gap-1 transition active:scale-95 cursor-pointer shadow-2xs">
-                                <span>🖨️</span>
+                                class="px-2.5 py-1.5 rounded-xl border border-stone-300 text-stone-700 hover:bg-white font-bold text-[11px] flex items-center gap-1.5 transition active:scale-95 cursor-pointer shadow-2xs">
+                                <svg class="w-3.5 h-3.5 text-stone-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+                                </svg>
                                 <span>Cetak Nota</span>
                             </button>
 
@@ -670,7 +693,11 @@
     <div id="start-shift-modal" class="fixed inset-0 bg-black/40 backdrop-blur-xs z-50 flex items-center justify-center p-4 hidden">
         <div class="bg-white rounded-3xl max-w-sm w-full p-5 border border-[#EBE6DD] shadow-2xl space-y-4">
             <div class="space-y-1 text-center">
-                <span class="text-2xl">🌅</span>
+                <div class="w-10 h-10 rounded-2xl bg-amber-50 border border-amber-200 text-amber-800 flex items-center justify-center mx-auto">
+                    <svg class="w-5 h-5 text-amber-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                </div>
                 <h3 class="font-extrabold text-base text-[#1B4332]">Buka Shift Mesin Kasir</h3>
                 <p class="text-xs text-stone-500">Masukkan saldo awal uang kas fisik di laci kasir.</p>
             </div>
@@ -706,8 +733,10 @@
     <div id="close-shift-modal" class="fixed inset-0 bg-black/40 backdrop-blur-xs z-50 flex items-center justify-center p-4 hidden">
         <div class="bg-white rounded-3xl max-w-md w-full p-6 border border-[#EBE6DD] shadow-2xl space-y-4 animate-in fade-in zoom-in-95 duration-150">
             <div class="space-y-1 text-center">
-                <div class="w-10 h-10 rounded-2xl bg-amber-50 border border-amber-200 text-amber-800 flex items-center justify-center mx-auto text-lg">
-                    🌙
+                <div class="w-10 h-10 rounded-2xl bg-amber-50 border border-amber-200 text-amber-800 flex items-center justify-center mx-auto">
+                    <svg class="w-5 h-5 text-amber-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+                    </svg>
                 </div>
                 <h3 class="font-extrabold text-base text-[#1B4332]">Tutup Shift & Rekap Pendapatan</h3>
                 <p class="text-xs text-stone-500">Hasil pendapatan shift dihitung otomatis oleh sistem.</p>
@@ -1054,8 +1083,10 @@
                             +
                         </button>
                         <button type="button" onclick="removeItem(${index})" title="Hapus"
-                            class="w-7 h-7 ml-1 text-stone-400 hover:text-rose-600 flex items-center justify-center text-xs cursor-pointer">
-                            ✕
+                            class="w-7 h-7 ml-1 text-stone-400 hover:text-rose-600 flex items-center justify-center cursor-pointer">
+                            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                            </svg>
                         </button>
                     </div>
                 `;
@@ -1114,7 +1145,7 @@
                 btnCash.className = 'py-2 px-3 rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 transition cursor-pointer text-stone-600 hover:text-[#2D2D2D]';
                 calcBox.classList.add('hidden');
                 qrisBox.classList.remove('hidden');
-                if (checkoutText) checkoutText.textContent = '📱 TAMPILKAN QRIS';
+                if (checkoutText) checkoutText.textContent = 'TAMPILKAN QRIS';
             }
 
             calculateChange();
@@ -1196,7 +1227,7 @@
         // 5b. Logika Integrasi QRIS (Merchant Dinamis / Midtrans Gateway)
         const qrisConfig = {
             mode: "{{ config('services.qris.mode', 'merchant') }}",
-            merchantName: "{{ config('services.qris.merchant_name', 'RAKHA RAQILLA SYIHAB') }}",
+            merchantName: "{{ config('services.qris.merchant_name', 'Es Teh Perkasa') }}",
             baseStaticQris: "{{ config('services.qris.base_string') }}",
         };
 
@@ -1456,7 +1487,7 @@
                 const btnText = document.getElementById('btn-copy-qris-text');
                 if (btnText) {
                     const originalText = btnText.textContent;
-                    btnText.textContent = '✓ Berhasil Disalin!';
+                    btnText.textContent = 'Berhasil Disalin!';
                     setTimeout(() => {
                         btnText.textContent = originalText;
                     }, 2500);
@@ -1534,7 +1565,7 @@
                     alert(data.message || 'Gagal memproses transaksi kasir.');
                     checkoutBtn.disabled = false;
                     if (checkoutText) {
-                        checkoutText.textContent = isCash ? 'BAYAR TUNAI' : '📱 TAMPILKAN QRIS';
+                        checkoutText.textContent = isCash ? 'BAYAR TUNAI' : 'TAMPILKAN QRIS';
                     }
                     return;
                 }
@@ -1559,7 +1590,7 @@
                 console.error(err);
             } finally {
                 if (checkoutText) {
-                    checkoutText.textContent = ((activePaymentMethod === 'tunai' || activePaymentMethod === 'cash') ? 'BAYAR TUNAI' : '📱 TAMPILKAN QRIS');
+                    checkoutText.textContent = ((activePaymentMethod === 'tunai' || activePaymentMethod === 'cash') ? 'BAYAR TUNAI' : 'TAMPILKAN QRIS');
                 }
             }
         }

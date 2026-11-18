@@ -10,8 +10,10 @@
     <div class="max-w-xl w-full bg-white rounded-2xl shadow-xl border border-amber-200 overflow-hidden">
         <!-- Header status -->
         <div class="bg-gradient-to-r from-amber-600 to-amber-700 p-6 text-white text-center">
-            <div class="inline-flex items-center justify-center w-16 h-16 bg-white/20 backdrop-blur rounded-full mb-3 text-3xl">
-                🔒
+            <div class="inline-flex items-center justify-center w-16 h-16 bg-white/20 backdrop-blur rounded-full mb-3">
+                <svg class="w-8 h-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                </svg>
             </div>
             <h1 class="text-2xl font-bold tracking-tight">Lisensi Usaha Belum Aktif</h1>
             <p class="text-amber-100 text-sm mt-1">Sistem kasir & operasional memerlukan lisensi aktif untuk dapat digunakan.</p>
@@ -60,7 +62,11 @@
             <!-- Opsi 1: Simulasi Pembayaran Lokal (Untuk pengujian PKL & laptop) -->
             <div class="border border-emerald-200 bg-emerald-50/60 rounded-xl p-5 space-y-3">
                 <div class="flex items-start gap-3">
-                    <span class="text-2xl">⚡</span>
+                    <div class="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0">
+                        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                        </svg>
+                    </div>
                     <div>
                         <h2 class="text-sm font-bold text-emerald-900">Uji Coba Cepat (Simulasi Lokal)</h2>
                         <p class="text-xs text-emerald-700 leading-relaxed mt-0.5">
@@ -72,7 +78,10 @@
                     @csrf
                     <button type="submit" 
                         class="w-full py-2.5 px-4 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-lg text-sm shadow-sm transition active:scale-[0.99] flex items-center justify-center gap-2">
-                        <span>✓</span> Simulasikan Pembayaran Sukses (Aktifkan 30 Hari)
+                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                        </svg>
+                        <span>Simulasikan Pembayaran Sukses (Aktifkan 30 Hari)</span>
                     </button>
                 </form>
             </div>
@@ -80,7 +89,10 @@
             <!-- Opsi 2: Input Kode Aktivasi Resmi (Dari PT Perkasa Solusindo) -->
             <div class="border border-stone-200 rounded-xl p-5 space-y-3">
                 <h2 class="text-sm font-bold text-stone-800 flex items-center gap-2">
-                    <span>🔑</span> Punya Kode Aktivasi Resmi?
+                    <svg class="w-4 h-4 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
+                    </svg>
+                    <span>Punya Kode Aktivasi Resmi?</span>
                 </h2>
                 <p class="text-xs text-stone-500">
                     Masukkan kode voucher / aktivasi dari admin perusahaan (Contoh kode tes: <code class="bg-stone-100 px-1.5 py-0.5 rounded font-mono text-amber-700">ETN-AKTIF</code>).

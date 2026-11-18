@@ -10,7 +10,7 @@
     <!-- Navbar atas -->
     <header class="bg-white border-b border-stone-200 px-4 py-3 flex items-center justify-between shadow-sm sticky top-0 z-20">
         <div class="flex items-center gap-3">
-            <span class="text-2xl">🍹</span>
+            <img src="/images/logo.jpg" alt="Logo" class="w-9 h-9 rounded-xl object-contain border border-stone-200 p-0.5">
             <div>
                 <h1 class="font-bold text-stone-900 leading-tight">{{ auth()->user()->business->name }}</h1>
                 <p class="text-xs text-stone-500">Mode Kelola (Dashboard Owner)</p>
@@ -20,8 +20,11 @@
         <div class="flex items-center gap-2">
             <!-- Tombol 1-Ketuk Ganti ke Mode Kasir -->
             <a href="{{ route('pos.index') }}" 
-                class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold px-3 py-2 rounded-lg flex items-center gap-1.5 shadow-sm transition">
-                <span>🛒</span> Buka Mode Kasir (POS)
+                class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold px-3.5 py-2 rounded-lg flex items-center gap-1.5 shadow-sm transition">
+                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+                </svg>
+                <span>Buka Mode Kasir (POS)</span>
             </a>
 
             <!-- Tombol Logout -->
@@ -37,7 +40,10 @@
     <main class="max-w-5xl mx-auto p-4 md:p-6 space-y-6">
         @if (session('success'))
             <div class="p-4 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-xl text-sm flex items-center gap-2">
-                <span>✓</span> {{ session('success') }}
+                <svg class="w-4 h-4 text-emerald-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                </svg>
+                <span>{{ session('success') }}</span>
             </div>
         @endif
 
