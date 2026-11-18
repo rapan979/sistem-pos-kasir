@@ -95,7 +95,7 @@
                     <!-- Input Email Kasir -->
                     <div>
                         <label for="email" class="block text-[11px] font-bold text-stone-700 uppercase tracking-wider mb-1.5">
-                            Username
+                            Email Kasir / Pengguna
                         </label>
                         <div class="relative">
                             <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-stone-400">
@@ -104,8 +104,8 @@
                                 </svg>
                             </span>
                             <input id="email" name="email" type="email" autocomplete="email" required
-                                value="{{ old('email', 'kasir@esteh.test') }}"
-                                placeholder="kasir@esteh.test"
+                                value="{{ old('email') }}"
+                                placeholder="nama@email.com"
                                 class="w-full min-h-[46px] pl-10 pr-3.5 py-2.5 bg-[#F8F6F0]/60 border border-[#EBE6DD] rounded-xl text-sm font-medium text-[#2D2D2D] placeholder-stone-400 transition focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#1B4332] focus:border-[#1B4332]">
                         </div>
                     </div>
@@ -122,7 +122,6 @@
                                 </svg>
                             </span>
                             <input id="password" name="password" type="password" autocomplete="current-password" required
-                                value="kasir12345"
                                 placeholder="••••••••"
                                 class="w-full min-h-[46px] pl-10 pr-12 py-2.5 bg-[#F8F6F0]/60 border border-[#EBE6DD] rounded-xl text-sm font-medium text-[#2D2D2D] placeholder-stone-400 transition focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#1B4332] focus:border-[#1B4332]">
                             
@@ -142,7 +141,7 @@
                     <!-- Remember Me -->
                     <div class="flex items-center">
                         <label class="flex items-center cursor-pointer select-none">
-                            <input id="remember" name="remember" type="checkbox" checked
+                            <input id="remember" name="remember" type="checkbox"
                                 class="w-4 h-4 text-[#1B4332] rounded border-[#EBE6DD] focus:ring-[#1B4332]">
                             <span class="ml-2 text-xs text-stone-600 font-medium">Ingat perangkat kasir ini</span>
                         </label>
@@ -159,16 +158,6 @@
                         </button>
                     </div>
                 </form>
-
-                <!-- Bantuan Cepat Pengujian: 1-Ketuk Akun Kasir Saja -->
-                <div class="pt-3 border-t border-[#EBE6DD]">
-                    <button type="button" onclick="fillKasir()"
-                        class="w-full py-2.5 px-3 rounded-xl border border-[#EBE6DD] bg-[#F8F6F0] hover:bg-stone-100 text-[#2D2D2D] text-xs font-semibold flex items-center justify-center gap-2 transition active:scale-95 cursor-pointer">
-                        <span class="text-[#E88A1A]"></span>
-                        <span>Isi Cepat Akun Kasir Uji</span>
-                        <span class="text-[10px] text-stone-500 font-mono">(kasir@esteh.test)</span>
-                    </button>
-                </div>
             </div>
 
             <p class="text-center text-[11px] text-stone-400 mt-6">
@@ -190,11 +179,6 @@
                 eyeIcon.classList.toggle('hidden', isPassword);
                 eyeSlashIcon.classList.toggle('hidden', !isPassword);
             });
-        }
-
-        function fillKasir() {
-            document.getElementById('email').value = 'kasir@esteh.test';
-            document.getElementById('password').value = 'kasir12345';
         }
     </script>
 </body>
