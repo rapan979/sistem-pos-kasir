@@ -4,6 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Layar Kasir - Es Teh Perkasa</title>
+    <link rel="icon" type="image/jpeg" href="/images/logo.jpg">
+    <link rel="shortcut icon" href="/images/logo.jpg">
+    <link rel="apple-touch-icon" href="/images/logo.jpg">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <meta name="theme-color" content="#1B4332">
     <meta name="apple-mobile-web-app-capable" content="yes">
@@ -52,6 +55,79 @@
 </head>
 <body class="h-full flex flex-col md:flex-row font-sans antialiased text-[#2D2D2D] select-none bg-[#F8F6F0]">
 
+@if (! $activeShift)
+    <!-- ==============================================================
+         GERBANG MULAI SHIFT KASIR (WAJIB SEBELUM BISA MASUK INDEX POS)
+         ============================================================== -->
+    <div id="shift-gate-screen" class="fixed inset-0 z-50 bg-[#F8F6F0] flex flex-col items-center justify-center p-4 sm:p-6 overflow-y-auto">
+        <div class="max-w-md w-full bg-white rounded-3xl p-6 sm:p-8 border border-[#EBE6DD] shadow-[0_8px_32px_rgba(27,67,50,0.08)] space-y-6 text-center animate-in fade-in zoom-in-95 duration-200">
+            <!-- Brand Logo & Kasir Info -->
+            <div class="space-y-3">
+                <div class="p-3 bg-[#F8F6F0] rounded-2xl w-20 h-20 mx-auto border border-[#EBE6DD] flex items-center justify-center shadow-xs">
+                    <img src="/images/logo.jpg" alt="Logo Es Teh Perkasa" class="w-full h-full object-contain rounded-xl">
+                </div>
+                <div>
+                    <h2 class="text-xl font-black text-[#1B4332] tracking-tight">Es Teh Perkasa</h2>
+                    <p class="text-xs text-stone-500 font-medium">{{ $outlet->name ?? 'Gerai Pusat' }} &bull; Kasir: {{ $user->name }}</p>
+                </div>
+                
+                <!-- Jam Realtime di Layar Gerbang -->
+                <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#1B4332]/5 border border-[#1B4332]/10 text-xs font-mono font-bold text-[#1B4332]">
+                    <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                    <span class="live-clock-text">--:--:-- WIB</span>
+                </div>
+            </div>
+
+            <!-- Pesan Instruksi -->
+            <div class="p-4 rounded-2xl bg-amber-50/70 border border-amber-200/80 text-left space-y-1">
+                <div class="flex items-center gap-1.5 text-xs font-bold text-amber-900">
+                    <span class="w-2 h-2 rounded-full bg-amber-500"></span>
+                    <span>Shift Kasir Belum Dimulai</span>
+                </div>
+                <p class="text-xs text-amber-800 leading-relaxed font-medium">
+                    Silakan masukkan modal awal kas fisik di laci dan klik tombol di bawah untuk memulai sesi jualan kasir hari ini.
+                </p>
+            </div>
+
+            <!-- Form Buka Shift -->
+            <div class="space-y-3 text-left">
+                <label class="block text-xs font-bold text-stone-700">Modal Awal Kas di Laci (Rp)</label>
+                <div class="relative">
+                    <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-stone-400 font-bold text-xs">Rp</span>
+                    <input type="number" id="gate-opening-cash" value="100000" min="0" step="1000"
+                        class="w-full pl-10 pr-3.5 py-3 bg-[#F8F6F0] border border-[#EBE6DD] rounded-xl text-base font-mono font-black text-[#1B4332] focus:outline-none focus:ring-2 focus:ring-[#1B4332]">
+                </div>
+
+                <!-- Preset Nominal -->
+                <div class="grid grid-cols-4 gap-1.5">
+                    <button type="button" onclick="setGateOpeningPreset(0)" class="py-1.5 rounded-lg bg-[#F8F6F0] hover:bg-stone-200/70 border border-[#EBE6DD] text-xs font-mono font-bold text-stone-700 transition active:scale-95 cursor-pointer">Rp 0</button>
+                    <button type="button" onclick="setGateOpeningPreset(50000)" class="py-1.5 rounded-lg bg-[#F8F6F0] hover:bg-stone-200/70 border border-[#EBE6DD] text-xs font-mono font-bold text-stone-700 transition active:scale-95 cursor-pointer">50k</button>
+                    <button type="button" onclick="setGateOpeningPreset(100000)" class="py-1.5 rounded-lg bg-[#F8F6F0] hover:bg-stone-200/70 border border-[#EBE6DD] text-xs font-mono font-bold text-stone-700 transition active:scale-95 cursor-pointer">100k</button>
+                    <button type="button" onclick="setGateOpeningPreset(200000)" class="py-1.5 rounded-lg bg-[#F8F6F0] hover:bg-stone-200/70 border border-[#EBE6DD] text-xs font-mono font-bold text-stone-700 transition active:scale-95 cursor-pointer">200k</button>
+                </div>
+            </div>
+
+            <!-- Tombol Aksi Buka Shift & Masuk Kasir -->
+            <div class="space-y-2 pt-2">
+                <button type="button" onclick="submitGateOpenShift()" id="btn-gate-open-shift"
+                    class="w-full py-3.5 px-4 rounded-xl bg-[#1B4332] hover:bg-[#143326] text-white font-extrabold text-sm shadow-md transition active:scale-98 cursor-pointer flex items-center justify-center gap-2">
+                    <span>Mulai Shift & Masuk Kasir</span>
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                    </svg>
+                </button>
+
+                <form action="{{ route('logout') }}" method="POST" class="pt-1">
+                    @csrf
+                    <button type="submit" class="text-xs text-stone-400 hover:text-stone-600 font-semibold underline cursor-pointer">
+                        Keluar / Ganti Akun Kasir
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+@endif
+
     <!-- ==============================================================
          1. SIDEBAR KIRI: NAVIGASI & PROFIL KASIR (DESKTOP/TABLET)
          ============================================================== -->
@@ -84,25 +160,35 @@
                     <svg class="w-4 h-4 text-stone-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
                     </svg>
-                    <span>Riwayat Pesanan</span>
+                    <span>Riwayat Pesanan (7 Hari)</span>
                 </button>
 
-                <!-- Status Shift Kasir -->
+                <!-- Status Shift Kasir & Tombol Tutup Shift -->
                 <div class="pt-2">
                     @if ($activeShift)
-                        <button type="button" onclick="openCloseShiftModal()"
-                            class="w-full p-2.5 rounded-xl bg-emerald-50 hover:bg-emerald-100/80 border border-emerald-200/80 text-left transition active:scale-95 cursor-pointer">
-                            <div class="flex items-center justify-between">
-                                <span class="flex items-center gap-1.5 text-[10px] font-bold text-emerald-800 uppercase tracking-wider">
-                                    <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                                    Shift Aktif
-                                </span>
-                                <span class="text-[10px] text-emerald-700 underline font-semibold">Tutup</span>
+                        <div class="space-y-2">
+                            <div class="p-2.5 rounded-xl bg-emerald-50 border border-emerald-200/80">
+                                <div class="flex items-center justify-between">
+                                    <span class="flex items-center gap-1.5 text-[10px] font-bold text-emerald-800 uppercase tracking-wider">
+                                        <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                                        Shift Aktif
+                                    </span>
+                                    <span class="text-[10px] font-mono font-bold text-emerald-700">#{{ $activeShift->id }}</span>
+                                </div>
+                                <div class="text-xs font-mono font-bold text-emerald-900 mt-1">
+                                    Modal: Rp {{ number_format($activeShift->opening_cash, 0, ',', '.') }}
+                                </div>
                             </div>
-                            <div class="text-xs font-mono font-bold text-emerald-900 mt-1">
-                                Modal: Rp {{ number_format($activeShift->opening_cash, 0, ',', '.') }}
-                            </div>
-                        </button>
+
+                            <!-- Tombol Tutup Shift / Akhiri Jualan -->
+                            <button type="button" onclick="openCloseShiftModal()"
+                                class="w-full py-2 px-3 rounded-xl bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs flex items-center justify-center gap-1.5 shadow-2xs transition active:scale-95 cursor-pointer">
+                                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                                </svg>
+                                <span>Tutup Shift / Akhiri Jualan</span>
+                            </button>
+                        </div>
                     @else
                         <button type="button" onclick="openStartShiftModal()"
                             class="w-full p-2.5 rounded-xl bg-[#E88A1A]/10 hover:bg-[#E88A1A]/20 border border-[#E88A1A]/30 text-left transition active:scale-95 cursor-pointer">
@@ -111,7 +197,7 @@
                                 Kasir Belum Buka
                             </div>
                             <div class="text-xs font-bold text-[#1B4332] mt-0.5 underline">
-                                Klik untuk Buka Shift
+                                Mulai Shift Kasir
                             </div>
                         </button>
                     @endif
@@ -158,22 +244,56 @@
          ============================================================== -->
     <main class="flex-1 flex flex-col overflow-hidden bg-[#F8F6F0] relative">
         
-        <!-- Header Atas Tengah: Search Bar & Kategori -->
+        <!-- Header Atas Tengah: Search Bar, Jam Realtime & Tombol Aksi -->
         <div class="p-4 sm:p-5 pb-2 shrink-0 space-y-3">
-            <!-- Pencarian Cepat Menu -->
-            <div class="relative max-w-md">
-                <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-stone-400">
-                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                    </svg>
-                </span>
-                <input type="text" id="menu-search" placeholder="Cari Menu..."
-                    class="w-full pl-10 pr-8 py-2.5 bg-white border border-[#EBE6DD] rounded-xl text-xs sm:text-sm text-[#2D2D2D] placeholder-stone-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#1B4332] focus:border-[#1B4332] shadow-[0_2px_8px_rgba(27,67,50,0.03)] transition">
-                <button type="button" id="clear-search" onclick="clearSearch()" class="hidden absolute inset-y-0 right-0 pr-3 flex items-center text-stone-400 hover:text-stone-700">
-                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                </button>
+            <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5">
+                <!-- Pencarian Cepat Menu -->
+                <div class="relative flex-1 max-w-sm">
+                    <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-stone-400">
+                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                        </svg>
+                    </span>
+                    <input type="text" id="menu-search" placeholder="Cari Menu..."
+                        class="w-full pl-10 pr-8 py-2.5 bg-white border border-[#EBE6DD] rounded-xl text-xs sm:text-sm text-[#2D2D2D] placeholder-stone-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#1B4332] focus:border-[#1B4332] shadow-[0_2px_8px_rgba(27,67,50,0.03)] transition">
+                    <button type="button" id="clear-search" onclick="clearSearch()" class="hidden absolute inset-y-0 right-0 pr-3 flex items-center text-stone-400 hover:text-stone-700">
+                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
+
+                <!-- Bagian Kanan Header: Jam Realtime & Tombol Aksi Cepat -->
+                <div class="flex items-center gap-2 shrink-0">
+                    <!-- Jam Realtime WIB -->
+                    <div class="flex items-center gap-1.5 font-mono text-xs font-bold text-[#1B4332] bg-white px-3 py-2 rounded-xl border border-[#EBE6DD] shadow-2xs">
+                        <svg class="w-3.5 h-3.5 text-emerald-700 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <span class="live-clock-text">--:--:-- WIB</span>
+                    </div>
+
+                    <!-- Tombol Cepat Riwayat -->
+                    <button type="button" onclick="openHistoryModal()"
+                        class="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-white hover:bg-stone-50 border border-[#EBE6DD] text-xs font-bold text-[#2D2D2D] transition shadow-2xs active:scale-95 cursor-pointer">
+                        <svg class="w-3.5 h-3.5 text-stone-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+                        </svg>
+                        <span class="hidden md:inline">Riwayat (7 Hari)</span>
+                        <span class="md:hidden">Riwayat</span>
+                    </button>
+
+                    @if ($activeShift)
+                        <!-- Tombol Tutup Shift Header -->
+                        <button type="button" onclick="openCloseShiftModal()"
+                            class="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold transition shadow-2xs active:scale-95 cursor-pointer">
+                            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013 3v1" />
+                            </svg>
+                            <span>Tutup Shift</span>
+                        </button>
+                    @endif
+                </div>
             </div>
 
             <!-- Filter Kategori Pil (Pill Buttons) Berdasarkan Database Riil -->
@@ -590,14 +710,15 @@
     </div>
 
     <!-- ==============================================================
-         7. MODAL RIWAYAT PESANAN & NOTA
+         7. MODAL RIWAYAT PESANAN & NOTA (7 HARI TERAKHIR & SHIFT)
          ============================================================== -->
     <div id="history-modal" class="fixed inset-0 bg-black/40 backdrop-blur-xs z-50 flex items-center justify-center p-4 hidden">
-        <div class="bg-white rounded-3xl max-w-lg w-full p-5 border border-[#EBE6DD] shadow-2xl space-y-4 animate-in fade-in zoom-in-95 duration-150">
+        <div class="bg-white rounded-3xl max-w-lg w-full p-5 sm:p-6 border border-[#EBE6DD] shadow-2xl space-y-3.5 animate-in fade-in zoom-in-95 duration-150">
+            <!-- Header Modal & Tombol Close -->
             <div class="flex items-center justify-between pb-3 border-b border-[#EBE6DD]">
                 <div>
-                    <h3 class="font-extrabold text-sm text-[#1B4332]">Riwayat Pesanan & Nota (Shift Ini)</h3>
-                    <p class="text-[11px] text-stone-500">Daftar nota transaksi dan rincian menu yang dipesan</p>
+                    <h3 class="font-extrabold text-sm sm:text-base text-[#1B4332]">Riwayat Pesanan & Nota</h3>
+                    <p class="text-[11px] text-stone-500">Menampilkan transaksi 7 hari terakhir & riwayat shift kasir</p>
                 </div>
                 <button type="button" onclick="closeHistoryModal()" class="w-7 h-7 rounded-full bg-[#F8F6F0] text-stone-400 hover:text-stone-700 flex items-center justify-center cursor-pointer">
                     <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -606,19 +727,62 @@
                 </button>
             </div>
 
-            <div class="overflow-y-auto max-h-96 space-y-2.5 pr-0.5">
+            <!-- Filter Tabs & Pencarian Cepat Nota -->
+            <div class="space-y-2">
+                <div class="flex items-center gap-1.5 p-1 bg-[#F8F6F0] rounded-xl border border-[#EBE6DD]">
+                    <button type="button" onclick="filterHistoryTab('all')" id="tab-hist-all"
+                        class="tab-hist flex-1 py-1.5 px-2 rounded-lg text-xs font-bold text-center transition cursor-pointer bg-white text-[#1B4332] shadow-2xs">
+                        Semua (7 Hari)
+                    </button>
+                    <button type="button" onclick="filterHistoryTab('shift')" id="tab-hist-shift"
+                        class="tab-hist flex-1 py-1.5 px-2 rounded-lg text-xs font-semibold text-center transition cursor-pointer text-stone-600 hover:text-[#2D2D2D]">
+                        Shift Ini
+                    </button>
+                    <button type="button" onclick="filterHistoryTab('today')" id="tab-hist-today"
+                        class="tab-hist flex-1 py-1.5 px-2 rounded-lg text-xs font-semibold text-center transition cursor-pointer text-stone-600 hover:text-[#2D2D2D]">
+                        Hari Ini
+                    </button>
+                </div>
+
+                <!-- Input Cari Nota -->
+                <div class="relative">
+                    <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-stone-400">
+                        <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                        </svg>
+                    </span>
+                    <input type="text" id="history-search-input" oninput="searchHistory()" placeholder="Cari No. Nota atau nama minuman..."
+                        class="w-full pl-9 pr-3 py-1.5 bg-[#F8F6F0]/60 border border-[#EBE6DD] rounded-xl text-xs text-[#2D2D2D] placeholder-stone-400 focus:bg-white focus:outline-none focus:ring-1 focus:ring-[#1B4332]">
+                </div>
+            </div>
+
+            <!-- List Kartu Riwayat Nota Transaksi -->
+            <div class="overflow-y-auto max-h-[360px] space-y-2.5 pr-0.5" id="history-items-container">
                 @forelse ($recentTransactions as $tx)
-                    <div class="p-3.5 rounded-2xl border border-[#EBE6DD] bg-[#F8F6F0]/40 space-y-2 text-xs">
+                    @php
+                        $isCurrentShift = ($activeShift && $tx->cashier_shift_id === $activeShift->id);
+                        $isToday = $tx->created_at->isToday();
+                        $searchPayload = strtolower($tx->invoice_number . ' ' . $tx->payment_method . ' ' . $tx->details->pluck('product_name')->join(' '));
+                    @endphp
+                    <div class="history-tx-card p-3.5 rounded-2xl border border-[#EBE6DD] bg-[#F8F6F0]/40 space-y-2 text-xs transition"
+                        data-current-shift="{{ $isCurrentShift ? '1' : '0' }}"
+                        data-today="{{ $isToday ? '1' : '0' }}"
+                        data-search="{{ $searchPayload }}">
                         <!-- Baris Atas: Info Nota, Waktu & Badge Metode -->
                         <div class="flex items-start justify-between">
                             <div>
-                                <div class="flex items-center gap-2">
+                                <div class="flex items-center gap-1.5 flex-wrap">
                                     <span class="font-mono font-black text-[#1B4332] text-xs">{{ $tx->invoice_number }}</span>
-                                    <span class="px-2 py-0.5 rounded-full text-[10px] font-bold {{ $tx->payment_method === 'qris' ? 'bg-amber-100 text-amber-800' : 'bg-emerald-100 text-emerald-800' }}">
+                                    <span class="px-2 py-0.5 rounded-full text-[9px] font-bold {{ $tx->payment_method === 'qris' ? 'bg-amber-100 text-amber-800' : 'bg-emerald-100 text-emerald-800' }}">
                                         {{ ucfirst($tx->payment_method) }}
                                     </span>
+                                    <span class="px-1.5 py-0.5 rounded-md text-[9px] font-mono font-semibold bg-white border border-[#EBE6DD] text-stone-500">
+                                        Shift #{{ $tx->cashier_shift_id ?? '-' }}
+                                    </span>
                                 </div>
-                                <div class="text-[10px] text-stone-400 mt-0.5">{{ $tx->created_at->format('d/m/Y H:i') }} WIB</div>
+                                <div class="text-[10px] text-stone-400 mt-0.5">
+                                    {{ $tx->created_at->format('d/m/Y H:i') }} WIB &bull; Kasir: {{ $tx->user->name ?? 'Kasir' }}
+                                </div>
                             </div>
                             <div class="text-right">
                                 <div class="font-mono font-black text-sm text-[#2D2D2D]">Rp {{ number_format($tx->total_amount, 0, ',', '.') }}</div>
@@ -639,7 +803,7 @@
                             <span class="text-[10px] font-bold text-stone-400 uppercase tracking-wider block">Rincian Minuman Dipesan:</span>
                             @foreach ($tx->details as $item)
                                 <div class="flex items-center justify-between text-[11px] text-[#2D2D2D]">
-                                    <span class="font-medium">• {{ $item->quantity }}x {{ $item->product_name }} ({{ $item->variation_name }})</span>
+                                    <span class="font-medium">&bull; {{ $item->quantity }}x {{ $item->product_name }} ({{ $item->variation_name }})</span>
                                     <span class="font-mono font-bold text-stone-700">Rp {{ number_format($item->subtotal, 0, ',', '.') }}</span>
                                 </div>
                             @endforeach
@@ -680,9 +844,13 @@
                     </div>
                 @empty
                     <div class="py-8 text-center text-stone-400 text-xs">
-                        Belum ada riwayat pesanan pada shift ini.
+                        Belum ada riwayat transaksi pada 7 hari terakhir.
                     </div>
                 @endforelse
+
+                <div id="history-empty-filter" class="py-8 text-center text-stone-400 text-xs hidden">
+                    Tidak ditemukan nota pada filter yang dipilih.
+                </div>
             </div>
         </div>
     </div>
@@ -847,9 +1015,20 @@
         // 1. Jam Realtime WIB
         function updateClock() {
             const now = new Date();
-            const timeStr = now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' }) + ' WIB';
-            const el = document.getElementById('current-clock');
-            if (el) el.textContent = timeStr;
+            const days = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+            const months = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
+            const dayName = days[now.getDay()];
+            const day = now.getDate();
+            const monthName = months[now.getMonth()];
+            const year = now.getFullYear();
+            const timeStr = now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' }).replace(/\./g, ':') + ' WIB';
+            const fullClock = `${dayName}, ${day} ${monthName} ${year} • ${timeStr}`;
+
+            document.querySelectorAll('.live-clock-text').forEach(el => {
+                el.textContent = fullClock;
+            });
+            const sidebarClock = document.getElementById('current-clock');
+            if (sidebarClock) sidebarClock.textContent = fullClock;
         }
         setInterval(updateClock, 1000);
         updateClock();
@@ -1828,6 +2007,107 @@
                 }
             } catch (err) {
                 alert('Gagal menutup shift kasir.');
+            }
+        }
+
+        // 10. Handler Gerbang Shift & Filter Riwayat 7 Hari
+        function setGateOpeningPreset(val) {
+            const input = document.getElementById('gate-opening-cash');
+            if (input) input.value = val;
+        }
+
+        async function submitGateOpenShift() {
+            const input = document.getElementById('gate-opening-cash');
+            const val = parseInt((input ? input.value : 0) || 0);
+            const btn = document.getElementById('btn-gate-open-shift');
+            if (btn) {
+                btn.disabled = true;
+                btn.textContent = 'Membuka Shift Kasir...';
+            }
+
+            try {
+                const res = await fetch('{{ route("pos.shift.open") }}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': csrfToken,
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify({ opening_cash: val })
+                });
+
+                const data = await res.json();
+                if (data.success) {
+                    window.location.reload();
+                } else {
+                    alert(data.message || 'Gagal membuka shift kasir.');
+                    if (btn) {
+                        btn.disabled = false;
+                        btn.innerHTML = '<span>Mulai Shift & Masuk Kasir</span><svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>';
+                    }
+                }
+            } catch (err) {
+                alert('Gagal membuka shift kasir.');
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerHTML = '<span>Mulai Shift & Masuk Kasir</span><svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>';
+                }
+            }
+        }
+
+        let currentHistoryTab = 'all';
+
+        function filterHistoryTab(tab) {
+            currentHistoryTab = tab;
+            const tabAll = document.getElementById('tab-hist-all');
+            const tabShift = document.getElementById('tab-hist-shift');
+            const tabToday = document.getElementById('tab-hist-today');
+
+            const activeClass = 'tab-hist flex-1 py-1.5 px-2 rounded-lg text-xs font-bold text-center transition cursor-pointer bg-white text-[#1B4332] shadow-2xs';
+            const inactiveClass = 'tab-hist flex-1 py-1.5 px-2 rounded-lg text-xs font-semibold text-center transition cursor-pointer text-stone-600 hover:text-[#2D2D2D]';
+
+            if (tabAll) tabAll.className = (tab === 'all') ? activeClass : inactiveClass;
+            if (tabShift) tabShift.className = (tab === 'shift') ? activeClass : inactiveClass;
+            if (tabToday) tabToday.className = (tab === 'today') ? activeClass : inactiveClass;
+
+            applyHistoryFilters();
+        }
+
+        function searchHistory() {
+            applyHistoryFilters();
+        }
+
+        function applyHistoryFilters() {
+            const searchInput = document.getElementById('history-search-input');
+            const query = (searchInput ? searchInput.value : '').toLowerCase().trim();
+            const cards = document.querySelectorAll('.history-tx-card');
+            let visibleCount = 0;
+
+            cards.forEach(card => {
+                let matchTab = true;
+                if (currentHistoryTab === 'shift') {
+                    matchTab = (card.dataset.currentShift === '1');
+                } else if (currentHistoryTab === 'today') {
+                    matchTab = (card.dataset.today === '1');
+                }
+
+                let matchQuery = true;
+                if (query.length > 0) {
+                    const searchData = card.dataset.search || '';
+                    matchQuery = searchData.includes(query);
+                }
+
+                if (matchTab && matchQuery) {
+                    card.classList.remove('hidden');
+                    visibleCount++;
+                } else {
+                    card.classList.add('hidden');
+                }
+            });
+
+            const emptyNotice = document.getElementById('history-empty-filter');
+            if (emptyNotice) {
+                emptyNotice.classList.toggle('hidden', visibleCount > 0);
             }
         }
     </script>

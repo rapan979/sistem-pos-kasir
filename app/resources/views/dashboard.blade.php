@@ -4,6 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard Pengelola - Es Teh Nusantara</title>
+    <link rel="icon" type="image/jpeg" href="/images/logo.jpg">
+    <link rel="shortcut icon" href="/images/logo.jpg">
+    <link rel="apple-touch-icon" href="/images/logo.jpg">
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 <body class="bg-stone-100 text-stone-800 min-h-screen">

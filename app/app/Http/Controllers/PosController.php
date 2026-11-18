@@ -57,19 +57,25 @@ class PosController extends Controller
             ->where('is_available', true)
             ->get();
 
-        // Ambil riwayat transaksi pada shift ini lengkap dengan rincian menu yang dipesan
-        $recentTransactions = collect();
+        // Ambil riwayat transaksi 7 hari terakhir (mencakup shift aktif & shift-shift sebelumnya)
+        $outletId = $outlet->id ?? ($business->outlets()->first()->id ?? null);
+        $txQuery = Transaction::query()
+            ->where('business_id', $business->id)
+            ->where('created_at', '>=', now()->subDays(7)->startOfDay())
+            ->with(['details', 'user', 'cashierShift']);
+
+        if ($outletId) {
+            $txQuery->where('outlet_id', $outletId);
+        }
+
+        $recentTransactions = $txQuery->latest()->take(150)->get();
+
+        // Hitung rekonsiliasi kas khusus untuk shift aktif saat ini
         $shiftCashSales = 0;
         $shiftQrisSales = 0;
         $expectedCash = 0;
 
         if ($activeShift) {
-            $recentTransactions = Transaction::where('cashier_shift_id', $activeShift->id)
-                ->with('details')
-                ->latest()
-                ->take(30)
-                ->get();
-
             $shiftCashSales = (int) Transaction::where('cashier_shift_id', $activeShift->id)
                 ->whereIn('payment_method', ['tunai', 'cash'])
                 ->whereIn('payment_status', ['lunas', 'paid'])

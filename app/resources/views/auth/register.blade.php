@@ -4,6 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Daftar Usaha Baru - Sistem POS Kasir Es Teh Nusantara</title>
+    <link rel="icon" type="image/jpeg" href="/images/logo.jpg">
+    <link rel="shortcut icon" href="/images/logo.jpg">
+    <link rel="apple-touch-icon" href="/images/logo.jpg">
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 <body class="min-h-full bg-stone-100 text-stone-900 font-sans flex flex-col justify-center py-8 sm:py-12 px-4 sm:px-6 lg:px-8">
