@@ -31,19 +31,29 @@ class AuthController extends Controller
     public function login(Request $request): RedirectResponse
     {
         $credentials = $request->validate([
-            'email' => ['required', 'string', 'email'],
+            'email' => ['required', 'string'],
             'password' => ['required', 'string'],
         ], [
-            'email.required' => 'Email wajib diisi.',
-            'email.email' => 'Format email tidak valid.',
+            'email.required' => 'Username atau email wajib diisi.',
             'password.required' => 'Kata sandi wajib diisi.',
         ]);
 
         $remember = $request->boolean('remember');
+        $loginInput = $credentials['email'];
+        $isEmail = filter_var($loginInput, FILTER_VALIDATE_EMAIL);
 
-        if (! Auth::attempt($credentials, $remember)) {
+        $attemptSuccess = false;
+        if ($isEmail) {
+            $attemptSuccess = Auth::attempt(['email' => $loginInput, 'password' => $credentials['password']], $remember);
+        } else {
+            // Autentikasi fleksibel: cek username (name) terlebih dahulu, lalu email
+            $attemptSuccess = Auth::attempt(['name' => $loginInput, 'password' => $credentials['password']], $remember)
+                || Auth::attempt(['email' => $loginInput, 'password' => $credentials['password']], $remember);
+        }
+
+        if (! $attemptSuccess) {
             return back()->withInput($request->only('email', 'remember'))->withErrors([
-                'email' => 'Email atau kata sandi yang Anda masukkan salah.',
+                'email' => 'Username/email atau kata sandi yang Anda masukkan salah.',
             ]);
         }
 

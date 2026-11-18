@@ -95,10 +95,10 @@
                 <form action="{{ route('login') }}" method="POST" class="space-y-4">
                     @csrf
 
-                    <!-- Input Email Kasir -->
+                    <!-- Input Username Kasir -->
                     <div>
                         <label for="email" class="block text-[11px] font-bold text-stone-700 uppercase tracking-wider mb-1.5">
-                            Email Kasir / Pengguna
+                            Username
                         </label>
                         <div class="relative">
                             <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-stone-400">
@@ -106,9 +106,9 @@
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207" />
                                 </svg>
                             </span>
-                            <input id="email" name="email" type="email" autocomplete="email" required
+                            <input id="email" name="email" type="text" autocomplete="username" required
                                 value="{{ old('email') }}"
-                                placeholder="nama@email.com"
+                                placeholder="Username atau email"
                                 class="w-full min-h-[46px] pl-10 pr-3.5 py-2.5 bg-[#F8F6F0]/60 border border-[#EBE6DD] rounded-xl text-sm font-medium text-[#2D2D2D] placeholder-stone-400 transition focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#1B4332] focus:border-[#1B4332]">
                         </div>
                     </div>

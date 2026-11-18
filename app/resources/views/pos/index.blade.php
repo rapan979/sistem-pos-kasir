@@ -57,45 +57,34 @@
 
 @if (! $activeShift)
     <!-- ==============================================================
-         GERBANG MULAI SHIFT KASIR (WAJIB SEBELUM BISA MASUK INDEX POS)
+         GERBANG MULAI SHIFT KASIR (SEDERHANA & MINIMALIS)
          ============================================================== -->
     <div id="shift-gate-screen" class="fixed inset-0 z-50 bg-[#F8F6F0] flex flex-col items-center justify-center p-4 sm:p-6 overflow-y-auto">
-        <div class="max-w-md w-full bg-white rounded-3xl p-6 sm:p-8 border border-[#EBE6DD] shadow-[0_8px_32px_rgba(27,67,50,0.08)] space-y-6 text-center animate-in fade-in zoom-in-95 duration-200">
+        <div class="max-w-sm w-full bg-white rounded-3xl p-6 sm:p-7 border border-[#EBE6DD] shadow-[0_8px_32px_rgba(27,67,50,0.08)] space-y-5 text-center animate-in fade-in zoom-in-95 duration-200">
             <!-- Brand Logo & Kasir Info -->
-            <div class="space-y-3">
-                <div class="p-3 bg-[#F8F6F0] rounded-2xl w-20 h-20 mx-auto border border-[#EBE6DD] flex items-center justify-center shadow-xs">
+            <div class="space-y-2.5">
+                <div class="p-2.5 bg-[#F8F6F0] rounded-2xl w-16 h-16 mx-auto border border-[#EBE6DD] flex items-center justify-center shadow-2xs">
                     <img src="/images/logo.jpg" alt="Logo Es Teh Perkasa" class="w-full h-full object-contain rounded-xl">
                 </div>
                 <div>
-                    <h2 class="text-xl font-black text-[#1B4332] tracking-tight">Es Teh Perkasa</h2>
+                    <h2 class="text-lg font-black text-[#1B4332] tracking-tight">Es Teh Perkasa</h2>
                     <p class="text-xs text-stone-500 font-medium">{{ $outlet->name ?? 'Gerai Pusat' }} &bull; Kasir: {{ $user->name }}</p>
                 </div>
                 
                 <!-- Jam Realtime di Layar Gerbang -->
-                <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#1B4332]/5 border border-[#1B4332]/10 text-xs font-mono font-bold text-[#1B4332]">
+                <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#1B4332]/5 border border-[#1B4332]/10 text-xs font-mono font-bold text-[#1B4332]">
                     <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
                     <span class="live-clock-text">--:--:-- WIB</span>
                 </div>
             </div>
 
-            <!-- Pesan Instruksi -->
-            <div class="p-4 rounded-2xl bg-amber-50/70 border border-amber-200/80 text-left space-y-1">
-                <div class="flex items-center gap-1.5 text-xs font-bold text-amber-900">
-                    <span class="w-2 h-2 rounded-full bg-amber-500"></span>
-                    <span>Shift Kasir Belum Dimulai</span>
-                </div>
-                <p class="text-xs text-amber-800 leading-relaxed font-medium">
-                    Silakan masukkan modal awal kas fisik di laci dan klik tombol di bawah untuk memulai sesi jualan kasir hari ini.
-                </p>
-            </div>
-
             <!-- Form Buka Shift -->
-            <div class="space-y-3 text-left">
+            <div class="space-y-2.5 text-left">
                 <label class="block text-xs font-bold text-stone-700">Modal Awal Kas di Laci (Rp)</label>
                 <div class="relative">
                     <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-stone-400 font-bold text-xs">Rp</span>
                     <input type="number" id="gate-opening-cash" value="100000" min="0" step="1000"
-                        class="w-full pl-10 pr-3.5 py-3 bg-[#F8F6F0] border border-[#EBE6DD] rounded-xl text-base font-mono font-black text-[#1B4332] focus:outline-none focus:ring-2 focus:ring-[#1B4332]">
+                        class="w-full pl-10 pr-3.5 py-2.5 bg-[#F8F6F0] border border-[#EBE6DD] rounded-xl text-base font-mono font-black text-[#1B4332] focus:outline-none focus:ring-2 focus:ring-[#1B4332]">
                 </div>
 
                 <!-- Preset Nominal -->
@@ -108,19 +97,19 @@
             </div>
 
             <!-- Tombol Aksi Buka Shift & Masuk Kasir -->
-            <div class="space-y-2 pt-2">
+            <div class="space-y-2 pt-1">
                 <button type="button" onclick="submitGateOpenShift()" id="btn-gate-open-shift"
-                    class="w-full py-3.5 px-4 rounded-xl bg-[#1B4332] hover:bg-[#143326] text-white font-extrabold text-sm shadow-md transition active:scale-98 cursor-pointer flex items-center justify-center gap-2">
+                    class="w-full py-3 px-4 rounded-xl bg-[#1B4332] hover:bg-[#143326] text-white font-extrabold text-sm shadow-md transition active:scale-98 cursor-pointer flex items-center justify-center gap-2">
                     <span>Mulai Shift & Masuk Kasir</span>
                     <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
                     </svg>
                 </button>
 
-                <form action="{{ route('logout') }}" method="POST" class="pt-1">
+                <form action="{{ route('logout') }}" method="POST">
                     @csrf
                     <button type="submit" class="text-xs text-stone-400 hover:text-stone-600 font-semibold underline cursor-pointer">
-                        Keluar / Ganti Akun Kasir
+                        Keluar
                     </button>
                 </form>
             </div>
@@ -244,11 +233,11 @@
          ============================================================== -->
     <main class="flex-1 flex flex-col overflow-hidden bg-[#F8F6F0] relative">
         
-        <!-- Header Atas Tengah: Search Bar, Jam Realtime & Tombol Aksi -->
+        <!-- Header Atas Tengah: Search Bar -->
         <div class="p-4 sm:p-5 pb-2 shrink-0 space-y-3">
-            <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5">
+            <div class="flex items-center justify-between gap-3">
                 <!-- Pencarian Cepat Menu -->
-                <div class="relative flex-1 max-w-sm">
+                <div class="relative w-full max-w-md">
                     <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-stone-400">
                         <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
@@ -261,38 +250,6 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                         </svg>
                     </button>
-                </div>
-
-                <!-- Bagian Kanan Header: Jam Realtime & Tombol Aksi Cepat -->
-                <div class="flex items-center gap-2 shrink-0">
-                    <!-- Jam Realtime WIB -->
-                    <div class="flex items-center gap-1.5 font-mono text-xs font-bold text-[#1B4332] bg-white px-3 py-2 rounded-xl border border-[#EBE6DD] shadow-2xs">
-                        <svg class="w-3.5 h-3.5 text-emerald-700 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
-                        <span class="live-clock-text">--:--:-- WIB</span>
-                    </div>
-
-                    <!-- Tombol Cepat Riwayat -->
-                    <button type="button" onclick="openHistoryModal()"
-                        class="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-white hover:bg-stone-50 border border-[#EBE6DD] text-xs font-bold text-[#2D2D2D] transition shadow-2xs active:scale-95 cursor-pointer">
-                        <svg class="w-3.5 h-3.5 text-stone-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
-                        </svg>
-                        <span class="hidden md:inline">Riwayat (7 Hari)</span>
-                        <span class="md:hidden">Riwayat</span>
-                    </button>
-
-                    @if ($activeShift)
-                        <!-- Tombol Tutup Shift Header -->
-                        <button type="button" onclick="openCloseShiftModal()"
-                            class="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold transition shadow-2xs active:scale-95 cursor-pointer">
-                            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013 3v1" />
-                            </svg>
-                            <span>Tutup Shift</span>
-                        </button>
-                    @endif
                 </div>
             </div>
 
@@ -323,9 +280,6 @@
                                 ? 'Rp ' . number_format($minPrice, 0, ',', '.')
                                 : 'Rp ' . number_format($minPrice, 0, ',', '.') . ' - ' . number_format($maxPrice, 0, ',', '.');
                             $imgSrc = $product->image ? asset($product->image) : asset('images/products/es-teh-original.jpg');
-                            
-                            // Badge Terlaris untuk menu unggulan tertentu
-                            $isPopular = in_array(strtolower($product->name), ['es teh original', 'es teh leci', 'thai tea', 'es teh susu gula aren']);
                         @endphp
                         <div class="product-card group bg-white rounded-2xl border border-[#EBE6DD] hover:border-stone-300 p-3.5 flex flex-col justify-between shadow-[0_4px_16px_rgba(27,67,50,0.04)] hover:shadow-[0_8px_24px_rgba(27,67,50,0.08)] transition-all duration-200 active:scale-[0.98] cursor-pointer relative"
                             data-id="{{ $product->id }}"
@@ -334,13 +288,6 @@
                             data-image="{{ $imgSrc }}"
                             data-variations='@json($product->variations)'
                             onclick="openProductModal({{ $product->id }})">
-                            
-                            <!-- Badge Terlaris (Oranye Amber #E88A1A) -->
-                            @if ($isPopular)
-                                <span class="absolute top-5 left-5 z-10 px-2 py-0.5 rounded-full bg-[#E88A1A] text-white text-[9px] font-extrabold uppercase tracking-wider shadow-2xs">
-                                    Terlaris
-                                </span>
-                            @endif
 
                             <div>
                                 <!-- Foto Produk Asli (Aspect Ratio Rapi) -->
@@ -717,8 +664,8 @@
             <!-- Header Modal & Tombol Close -->
             <div class="flex items-center justify-between pb-3 border-b border-[#EBE6DD]">
                 <div>
-                    <h3 class="font-extrabold text-sm sm:text-base text-[#1B4332]">Riwayat Pesanan & Nota</h3>
-                    <p class="text-[11px] text-stone-500">Menampilkan transaksi 7 hari terakhir & riwayat shift kasir</p>
+                    <h3 class="font-extrabold text-sm sm:text-base text-[#1B4332]">Riwayat Pesanan (7 Hari Terakhir)</h3>
+                    <p class="text-[11px] text-stone-500">Daftar transaksi dan nota kasir 7 hari terakhir</p>
                 </div>
                 <button type="button" onclick="closeHistoryModal()" class="w-7 h-7 rounded-full bg-[#F8F6F0] text-stone-400 hover:text-stone-700 flex items-center justify-center cursor-pointer">
                     <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -727,33 +674,15 @@
                 </button>
             </div>
 
-            <!-- Filter Tabs & Pencarian Cepat Nota -->
-            <div class="space-y-2">
-                <div class="flex items-center gap-1.5 p-1 bg-[#F8F6F0] rounded-xl border border-[#EBE6DD]">
-                    <button type="button" onclick="filterHistoryTab('all')" id="tab-hist-all"
-                        class="tab-hist flex-1 py-1.5 px-2 rounded-lg text-xs font-bold text-center transition cursor-pointer bg-white text-[#1B4332] shadow-2xs">
-                        Semua (7 Hari)
-                    </button>
-                    <button type="button" onclick="filterHistoryTab('shift')" id="tab-hist-shift"
-                        class="tab-hist flex-1 py-1.5 px-2 rounded-lg text-xs font-semibold text-center transition cursor-pointer text-stone-600 hover:text-[#2D2D2D]">
-                        Shift Ini
-                    </button>
-                    <button type="button" onclick="filterHistoryTab('today')" id="tab-hist-today"
-                        class="tab-hist flex-1 py-1.5 px-2 rounded-lg text-xs font-semibold text-center transition cursor-pointer text-stone-600 hover:text-[#2D2D2D]">
-                        Hari Ini
-                    </button>
-                </div>
-
-                <!-- Input Cari Nota -->
-                <div class="relative">
-                    <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-stone-400">
-                        <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                        </svg>
-                    </span>
-                    <input type="text" id="history-search-input" oninput="searchHistory()" placeholder="Cari No. Nota atau nama minuman..."
-                        class="w-full pl-9 pr-3 py-1.5 bg-[#F8F6F0]/60 border border-[#EBE6DD] rounded-xl text-xs text-[#2D2D2D] placeholder-stone-400 focus:bg-white focus:outline-none focus:ring-1 focus:ring-[#1B4332]">
-                </div>
+            <!-- Pencarian Cepat Nota -->
+            <div class="relative">
+                <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-stone-400">
+                    <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                    </svg>
+                </span>
+                <input type="text" id="history-search-input" oninput="searchHistory()" placeholder="Cari No. Nota atau nama minuman..."
+                    class="w-full pl-9 pr-3 py-2 bg-[#F8F6F0]/60 border border-[#EBE6DD] rounded-xl text-xs text-[#2D2D2D] placeholder-stone-400 focus:bg-white focus:outline-none focus:ring-1 focus:ring-[#1B4332]">
             </div>
 
             <!-- List Kartu Riwayat Nota Transaksi -->
@@ -843,13 +772,13 @@
                         </div>
                     </div>
                 @empty
-                    <div class="py-8 text-center text-stone-400 text-xs">
+                    <div id="history-empty-initial" class="py-8 text-center text-stone-400 text-xs">
                         Belum ada riwayat transaksi pada 7 hari terakhir.
                     </div>
                 @endforelse
 
                 <div id="history-empty-filter" class="py-8 text-center text-stone-400 text-xs hidden">
-                    Tidak ditemukan nota pada filter yang dipilih.
+                    Tidak ditemukan nota yang sesuai pencarian.
                 </div>
             </div>
         </div>
@@ -1752,6 +1681,9 @@
                 // Tampilkan Modal Sukses & Pratinjau Struk
                 showReceiptModal(data, [...cart]);
 
+                // Tambahkan transaksi baru langsung ke Riwayat Pesanan (paling atas)
+                prependHistoryCard(data, [...cart]);
+
                 // Auto-print struk thermal secara otomatis jika QRIS
                 if (!isCash) {
                     setTimeout(() => {
@@ -2055,49 +1987,127 @@
             }
         }
 
-        let currentHistoryTab = 'all';
+        function escapeHtml(str) {
+            if (!str) return '';
+            return String(str)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+        }
 
-        function filterHistoryTab(tab) {
-            currentHistoryTab = tab;
-            const tabAll = document.getElementById('tab-hist-all');
-            const tabShift = document.getElementById('tab-hist-shift');
-            const tabToday = document.getElementById('tab-hist-today');
+        function prependHistoryCard(txData, items) {
+            const container = document.getElementById('history-items-container');
+            if (!container) return;
 
-            const activeClass = 'tab-hist flex-1 py-1.5 px-2 rounded-lg text-xs font-bold text-center transition cursor-pointer bg-white text-[#1B4332] shadow-2xs';
-            const inactiveClass = 'tab-hist flex-1 py-1.5 px-2 rounded-lg text-xs font-semibold text-center transition cursor-pointer text-stone-600 hover:text-[#2D2D2D]';
+            const initialEmpty = document.getElementById('history-empty-initial');
+            if (initialEmpty) {
+                initialEmpty.remove();
+            }
 
-            if (tabAll) tabAll.className = (tab === 'all') ? activeClass : inactiveClass;
-            if (tabShift) tabShift.className = (tab === 'shift') ? activeClass : inactiveClass;
-            if (tabToday) tabToday.className = (tab === 'today') ? activeClass : inactiveClass;
+            const searchPayload = [
+                txData.invoice_number || '',
+                txData.payment_method || '',
+                ...items.map(i => i.product_name || '')
+            ].join(' ').toLowerCase();
 
-            applyHistoryFilters();
+            const isQris = (txData.payment_method === 'qris');
+            const badgeClass = isQris ? 'bg-amber-100 text-amber-800' : 'bg-emerald-100 text-emerald-800';
+            const methodLabel = isQris ? 'Qris' : 'Tunai';
+
+            const card = document.createElement('div');
+            card.className = 'history-tx-card p-3.5 rounded-2xl border border-[#EBE6DD] bg-[#F8F6F0]/40 space-y-2 text-xs transition animate-in fade-in slide-in-from-top-2 duration-200';
+            card.dataset.search = searchPayload;
+
+            const itemsHtml = items.map(item => `
+                <div class="flex items-center justify-between text-[11px] text-[#2D2D2D]">
+                    <span class="font-medium">&bull; ${item.quantity}x ${escapeHtml(item.product_name)} (${escapeHtml(item.variation_name || 'Regular')})</span>
+                    <span class="font-mono font-bold text-stone-700">Rp ${Number(item.subtotal || 0).toLocaleString('id-ID')}</span>
+                </div>
+            `).join('');
+
+            const reprintPayload = {
+                invoice_number: txData.invoice_number,
+                created_at: txData.created_at,
+                total_amount: txData.total_amount,
+                paid_amount: txData.paid_amount,
+                change_amount: txData.change_amount,
+                payment_method: txData.payment_method,
+                items: items.map(d => ({
+                    product_name: d.product_name,
+                    variation_name: d.variation_name || 'Regular',
+                    quantity: d.quantity,
+                    unitPrice: d.unitPrice || d.price,
+                    subtotal: d.subtotal,
+                    toppings: (d.toppings || []).map(t => ({ name: t.name, price: t.price }))
+                }))
+            };
+
+            const jsonString = JSON.stringify(reprintPayload).replace(/"/g, '&quot;');
+
+            card.innerHTML = `
+                <div class="flex items-start justify-between">
+                    <div>
+                        <div class="flex items-center gap-1.5 flex-wrap">
+                            <span class="font-mono font-black text-[#1B4332] text-xs">${escapeHtml(txData.invoice_number)}</span>
+                            <span class="px-2 py-0.5 rounded-full text-[9px] font-bold ${badgeClass}">
+                                ${methodLabel}
+                            </span>
+                            <span class="px-1.5 py-0.5 rounded-md text-[9px] font-mono font-semibold bg-white border border-[#EBE6DD] text-stone-500">
+                                Shift #${txData.cashier_shift_id || '-'}
+                            </span>
+                        </div>
+                        <div class="text-[10px] text-stone-400 mt-0.5">
+                            ${escapeHtml(txData.created_at)} &bull; Kasir: ${escapeHtml(txData.cashier_name || 'Kasir')}
+                        </div>
+                    </div>
+                    <div class="text-right">
+                        <div class="font-mono font-black text-sm text-[#2D2D2D]">Rp ${Number(txData.total_amount).toLocaleString('id-ID')}</div>
+                        <span class="inline-block mt-0.5 px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 font-bold text-[10px]">
+                            Lunas
+                        </span>
+                    </div>
+                </div>
+
+                <div class="p-2.5 rounded-xl bg-white border border-[#EBE6DD]/80 space-y-1">
+                    <span class="text-[10px] font-bold text-stone-400 uppercase tracking-wider block">Rincian Minuman Dipesan:</span>
+                    ${itemsHtml}
+                </div>
+
+                <div class="flex items-center justify-end gap-2 pt-1">
+                    <button type="button" onclick="reprintTx(${jsonString})"
+                        class="px-2.5 py-1.5 rounded-xl border border-stone-300 text-stone-700 hover:bg-white font-bold text-[11px] flex items-center gap-1.5 transition active:scale-95 cursor-pointer shadow-2xs">
+                        <svg class="w-3.5 h-3.5 text-stone-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+                        </svg>
+                        <span>Cetak Nota</span>
+                    </button>
+
+                    <button type="button" onclick="promptVoid(${txData.transaction_id}, '${escapeHtml(txData.invoice_number)}')"
+                        class="px-2.5 py-1.5 rounded-xl border border-rose-200 text-rose-700 hover:bg-rose-50 font-bold text-[11px] transition active:scale-95 cursor-pointer">
+                        Void Nota
+                    </button>
+                </div>
+            `;
+
+            container.prepend(card);
         }
 
         function searchHistory() {
-            applyHistoryFilters();
-        }
-
-        function applyHistoryFilters() {
             const searchInput = document.getElementById('history-search-input');
             const query = (searchInput ? searchInput.value : '').toLowerCase().trim();
             const cards = document.querySelectorAll('.history-tx-card');
             let visibleCount = 0;
 
             cards.forEach(card => {
-                let matchTab = true;
-                if (currentHistoryTab === 'shift') {
-                    matchTab = (card.dataset.currentShift === '1');
-                } else if (currentHistoryTab === 'today') {
-                    matchTab = (card.dataset.today === '1');
-                }
-
-                let matchQuery = true;
+                let match = true;
                 if (query.length > 0) {
                     const searchData = card.dataset.search || '';
-                    matchQuery = searchData.includes(query);
+                    match = searchData.includes(query);
                 }
 
-                if (matchTab && matchQuery) {
+                if (match) {
                     card.classList.remove('hidden');
                     visibleCount++;
                 } else {
@@ -2107,7 +2117,7 @@
 
             const emptyNotice = document.getElementById('history-empty-filter');
             if (emptyNotice) {
-                emptyNotice.classList.toggle('hidden', visibleCount > 0);
+                emptyNotice.classList.toggle('hidden', visibleCount > 0 || cards.length === 0);
             }
         }
     </script>
