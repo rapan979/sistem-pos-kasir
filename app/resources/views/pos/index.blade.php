@@ -684,61 +684,71 @@
     <!-- ==============================================================
          7. MODAL RIWAYAT PESANAN & NOTA (7 HARI TERAKHIR & SHIFT)
          ============================================================== -->
-    <div id="history-modal" class="fixed inset-0 bg-black/40 backdrop-blur-xs z-50 flex items-center justify-center p-4 hidden">
-        <div class="bg-white rounded-3xl max-w-lg w-full p-5 sm:p-6 border border-[#EBE6DD] shadow-2xl space-y-3.5 animate-in fade-in zoom-in-95 duration-150">
-            <!-- Header Modal & Tombol Close -->
-            <div class="flex items-center justify-between pb-3 border-b border-[#EBE6DD]">
+    <div id="history-modal" onclick="if(event.target === this) closeHistoryModal()"
+        class="fixed inset-0 bg-black/60 backdrop-blur-xs z-50 flex items-center justify-center p-3 sm:p-4 md:p-6 overflow-y-auto hidden">
+        <div class="bg-white rounded-3xl max-w-lg w-full border border-[#EBE6DD] shadow-2xl flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-150 my-auto"
+            style="max-height: 88vh; max-height: 88dvh; height: min(680px, 88vh);"
+            onclick="event.stopPropagation()">
+            <!-- 1. Header Modal & Tombol Close (Pinned di Atas) -->
+            <div class="p-4 sm:p-5 pb-3.5 border-b border-[#EBE6DD] flex items-center justify-between shrink-0 bg-white">
                 <div>
                     <h3 class="font-extrabold text-sm sm:text-base text-[#1B4332]" id="history-modal-title">Riwayat Pesanan & Nota</h3>
                     <p class="text-[11px] text-stone-500" id="history-modal-desc">Daftar transaksi kasir 7 hari terakhir (semua shift)</p>
                 </div>
-                <button type="button" onclick="closeHistoryModal()" class="w-7 h-7 rounded-full bg-[#F8F6F0] text-stone-400 hover:text-stone-700 flex items-center justify-center cursor-pointer">
-                    <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <button type="button" onclick="closeHistoryModal()"
+                    class="w-8 h-8 rounded-full bg-[#F8F6F0] hover:bg-stone-200 text-stone-500 hover:text-stone-800 flex items-center justify-center transition active:scale-95 cursor-pointer"
+                    title="Tutup (Esc)">
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                     </svg>
                 </button>
             </div>
 
-            <!-- Tab Filter Scope: 7 Hari Terakhir & Khusus Shift Ini -->
-            @php
-                $shiftTxCount = $recentTransactions->filter(function($tx) use ($activeShift) {
-                    return $activeShift && (int)$tx->cashier_shift_id === (int)$activeShift->id;
-                })->count();
-                $allTxCount = $recentTransactions->count();
-            @endphp
-            <div class="flex items-center gap-1.5 p-1 bg-[#F8F6F0] rounded-xl border border-[#EBE6DD]">
-                <button type="button" onclick="setHistoryScope('all')" id="tab-hist-all"
-                    class="tab-hist-btn flex-1 py-2 px-3 rounded-xl text-xs font-bold text-center transition cursor-pointer bg-white text-[#1B4332] shadow-2xs flex items-center justify-center gap-1.5">
-                    <span>7 Hari Terakhir</span>
-                    <span id="badge-count-all" class="px-1.5 py-0.5 rounded-full text-[10px] bg-stone-100 text-stone-600 font-mono">{{ $allTxCount }}</span>
-                </button>
-                <button type="button" onclick="setHistoryScope('shift')" id="tab-hist-shift"
-                    class="tab-hist-btn flex-1 py-2 px-3 rounded-xl text-xs font-semibold text-center transition cursor-pointer text-stone-600 hover:text-[#2D2D2D] bg-transparent flex items-center justify-center gap-1.5">
-                    <span>Khusus Shift Ini</span>
-                    @if ($activeShift)
-                        <span id="badge-count-shift" class="px-1.5 py-0.5 rounded-full text-[10px] bg-emerald-100 text-emerald-800 font-mono font-bold">{{ $shiftTxCount }}</span>
-                    @endif
-                </button>
+            <!-- 2. Toolbar Filter Tab & Search (Pinned di Bawah Header) -->
+            <div class="px-4 sm:px-5 pt-3 pb-3 space-y-2.5 shrink-0 bg-white border-b border-[#EBE6DD]/60">
+                <!-- Tab Filter Scope: 7 Hari Terakhir & Khusus Shift Ini -->
+                @php
+                    $shiftTxCount = $recentTransactions->filter(function($tx) use ($activeShift) {
+                        return $activeShift && (int)$tx->cashier_shift_id === (int)$activeShift->id;
+                    })->count();
+                    $allTxCount = $recentTransactions->count();
+                @endphp
+                <div class="flex items-center gap-1.5 p-1 bg-[#F8F6F0] rounded-xl border border-[#EBE6DD]">
+                    <button type="button" onclick="setHistoryScope('all')" id="tab-hist-all"
+                        class="tab-hist-btn flex-1 py-2 px-3 rounded-xl text-xs font-bold text-center transition cursor-pointer bg-white text-[#1B4332] shadow-2xs flex items-center justify-center gap-1.5">
+                        <span>7 Hari Terakhir</span>
+                        <span id="badge-count-all" class="px-1.5 py-0.5 rounded-full text-[10px] bg-stone-100 text-stone-600 font-mono">{{ $allTxCount }}</span>
+                    </button>
+                    <button type="button" onclick="setHistoryScope('shift')" id="tab-hist-shift"
+                        class="tab-hist-btn flex-1 py-2 px-3 rounded-xl text-xs font-semibold text-center transition cursor-pointer text-stone-600 hover:text-[#2D2D2D] bg-transparent flex items-center justify-center gap-1.5">
+                        <span>Khusus Shift Ini</span>
+                        @if ($activeShift)
+                            <span id="badge-count-shift" class="px-1.5 py-0.5 rounded-full text-[10px] bg-emerald-100 text-emerald-800 font-mono font-bold">{{ $shiftTxCount }}</span>
+                        @endif
+                    </button>
+                </div>
+
+                <!-- Pencarian Cepat Nota -->
+                <div class="relative">
+                    <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-stone-400">
+                        <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                        </svg>
+                    </span>
+                    <input type="text" id="history-search-input" oninput="searchHistory()" placeholder="Cari No. Nota atau nama minuman..."
+                        class="w-full pl-9 pr-8 py-2 bg-[#F8F6F0]/60 border border-[#EBE6DD] rounded-xl text-xs text-[#2D2D2D] placeholder-stone-400 focus:bg-white focus:outline-none focus:ring-1 focus:ring-[#1B4332]">
+                    <button type="button" id="btn-clear-history-search" onclick="clearHistorySearch()" class="hidden absolute inset-y-0 right-0 pr-2.5 flex items-center text-stone-400 hover:text-stone-600 cursor-pointer">
+                        <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
             </div>
 
-            <!-- Pencarian Cepat Nota -->
-            <div class="relative">
-                <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-stone-400">
-                    <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                    </svg>
-                </span>
-                <input type="text" id="history-search-input" oninput="searchHistory()" placeholder="Cari No. Nota atau nama minuman..."
-                    class="w-full pl-9 pr-8 py-2 bg-[#F8F6F0]/60 border border-[#EBE6DD] rounded-xl text-xs text-[#2D2D2D] placeholder-stone-400 focus:bg-white focus:outline-none focus:ring-1 focus:ring-[#1B4332]">
-                <button type="button" id="btn-clear-history-search" onclick="clearHistorySearch()" class="hidden absolute inset-y-0 right-0 pr-2.5 flex items-center text-stone-400 hover:text-stone-600 cursor-pointer">
-                    <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                </button>
-            </div>
-
-            <!-- List Kartu Riwayat Nota Transaksi -->
-            <div class="overflow-y-auto max-h-[380px] space-y-2.5 pr-0.5" id="history-items-container">
+            <!-- 3. List Kartu Riwayat Nota Transaksi (Scrollable Terisolasi) -->
+            <div class="flex-1 overflow-y-auto p-4 sm:p-5 space-y-2.5 pr-2.5 sm:pr-3.5"
+                id="history-items-container"
+                style="min-height: 0; overflow-y: auto;">
                 @forelse ($recentTransactions as $tx)
                     @php
                         $isCurrentShift = ($activeShift && (int)$tx->cashier_shift_id === (int)$activeShift->id);
@@ -857,6 +867,17 @@
                     </svg>
                     <p class="font-medium text-stone-500">Tidak ditemukan nota yang sesuai pencarian.</p>
                 </div>
+            </div>
+
+            <!-- 4. Footer Modal Pinned (Tutup button & ESC hint) -->
+            <div class="px-4 py-3 sm:px-5 border-t border-[#EBE6DD] bg-[#F8F6F0]/70 flex items-center justify-between shrink-0">
+                <span class="text-[11px] text-stone-400">
+                    Klik di luar atau tekan <kbd class="px-1.5 py-0.5 rounded bg-white border border-[#EBE6DD] font-mono text-[10px] text-stone-600 shadow-2xs">ESC</kbd> untuk menutup
+                </span>
+                <button type="button" onclick="closeHistoryModal()"
+                    class="py-1.5 px-4 rounded-xl bg-white hover:bg-stone-100 border border-[#EBE6DD] text-stone-700 font-bold text-xs shadow-2xs transition active:scale-95 cursor-pointer">
+                    Tutup
+                </button>
             </div>
         </div>
     </div>
@@ -1896,8 +1917,21 @@
         }
 
         function closeHistoryModal() {
-            document.getElementById('history-modal').classList.add('hidden');
+            const modal = document.getElementById('history-modal');
+            if (modal) modal.classList.add('hidden');
         }
+
+        // Global Shortcut: ESC untuk menutup modal
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape' || e.key === 'Esc') {
+                closeHistoryModal();
+                closeReceiptModal();
+                const startShift = document.getElementById('start-shift-modal');
+                if (startShift) startShift.classList.add('hidden');
+                const closeShift = document.getElementById('close-shift-modal');
+                if (closeShift) closeShift.classList.add('hidden');
+            }
+        });
 
         function setHistoryScope(scope) {
             currentHistoryScope = scope;
